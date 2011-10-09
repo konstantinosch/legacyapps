@@ -1,0 +1,85 @@
+-GREEDY
+??
+
+-FACE
+
+
+@inproceedings{313282,
+ author = {Bose, Prosenjit and Morin, Pat and Stojmenovi\'{c}, Ivan and Urrutia, Jorge},
+ title = {Routing with guaranteed delivery in ad hoc wireless networks},
+ booktitle = {DIALM '99: Proceedings of the 3rd international workshop on Discrete algorithms and methods for mobile computing and communications},
+ year = {1999},
+ isbn = {1-58113-174-7},
+ pages = {48--55},
+ location = {Seattle, Washington, United States},
+ doi = {http://doi.acm.org/10.1145/313239.313282},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+-GFG
+
+@inproceedings{1161133,
+ author = {Frey, Hannes and Stojmenovic, Ivan},
+ title = {On delivery guarantees of face and combined greedy-face routing in ad hoc and sensor networks},
+ booktitle = {MobiCom '06: Proceedings of the 12th annual international conference on Mobile computing and networking},
+ year = {2006},
+ isbn = {1-59593-286-0},
+ pages = {390--401},
+ location = {Los Angeles, CA, USA},
+ doi = {http://doi.acm.org/10.1145/1161089.1161133},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+
+-GRIC
+
+@INPROCEEDINGS {RACTI-RU1-2007-9,
+title = {Simple and Efficient Geographic Routing around Obstacles for Wireless Sensor Networks},
+author = {Powell, Olivier and Nikoletseas, Sotiris},
+booktitle = {6th International Workshop on Experimental Algorithms (WEA 2007)},
+series = {Lecture Notes in Computer Science},
+year = {2007},
+month = {May},
+number = {4007},
+pages = {161--174},
+publisher = {Springer Verlag, LNCS},
+url = {http://www.lsi.upc.edu/~wea/},
+doi = {10.1007/11764298},
+keywords = {sensor networks, obctacle avoidance, geographic routing}
+}
+
+-EMISSION INHIBITION
+
+{EMIINH,
+title = {Localization Algorithm for Wireless Ad-Hoc Sensor Networks with Traffic Overhead Minimization by Emission Inhibition}
+author = {Pierre Leone, Luminita Moraru, Olivier Powell and Jose Rolim}
+booktitle = {Algorithmic Aspects of Wireless Sensor Networks}
+series = {Lecture Notes in Computer Science}
+year = {2006}
+pages = {119-129}
+publisher = {Springer Berlin / Heidelberg}
+url = {http://www.springerlink.com/content/j2x0w1706783m133/}
+doi = 10.1007/11963271_11
+}
+
+
+-GREEDY LOC
+??
+
+-PLTT
+@inproceedings{DBLP:conf/globecom/MarculescuNPR08,
+  author    = {Andrei Marculescu and
+               Sotiris E. Nikoletseas and
+               Olivier Powell and
+               Jos{\'e} D. P. Rolim},
+  title     = {Efficient Tracking of Moving Targets by Passively Handling
+               Traces in Sensor Networks},
+  booktitle = {GLOBECOM},
+  year      = {2008},
+  pages     = {271-276},
+  ee        = {http://dx.doi.org/10.1109/GLOCOM.2008.ECP.60},
+  crossref  = {DBLP:conf/globecom/2008},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}

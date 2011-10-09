@@ -1,0 +1,44 @@
+#include "legacyapps/module_unige_wiselib/module_unige_wiselib_init.h"
+#ifdef ENABLE_MODULE_UNIGE_WISELIB
+
+//#include "legacyapps/module_unige_wiselib/pltt/PLTT_passive_processor.h"
+//#include "legacyapps/module_unige_wiselib/pltt/PLTT_passive_processor_factory.h"
+//#include "legacyapps/module_unige_wiselib/pltt/PLTT_target_processor.h"
+//#include "legacyapps/module_unige_wiselib/pltt/PLTT_target_processor_factory.h"
+//#include "legacyapps/module_unige_wiselib/pltt/PLTT_tracker_processor.h"
+//#include "legacyapps/module_unige_wiselib/pltt/PLTT_tracker_processor_factory.h"
+#include "legacyapps/module_unige_wiselib/pltt/PLTT_processor.h"
+#include "legacyapps/module_unige_wiselib/pltt/PLTT_processor_factory.h"
+#include "legacyapps/module_unige_wiselib/lazy/lazy_processor.h"
+#include "legacyapps/module_unige_wiselib/lazy/lazy_processor_factory.h"
+#/*include "legacyapps/module_unige_wiselib/greedy/greedy_processor_factory.h"
+#include "legacyapps/module_unige_wiselib/greedy/greedy_processor.h"
+#include "legacyapps/module_unige_wiselib/face/face_processor_factory.h"
+#include "legacyapps/module_unige_wiselib/face/face_processor.h"
+#include "legacyapps/module_unige_wiselib/gfg/gfg_processor_factory.h"
+#include "legacyapps/module_unige_wiselib/gfg/gfg_processor.h"
+#include "legacyapps/module_unige_wiselib/gric/gric_processor_factory.h"
+#include "legacyapps/module_unige_wiselib/gric/gric_processor.h"
+#include "legacyapps/module_unige_wiselib/greedyloc/greedyloc_processor_factory.h"
+#include "legacyapps/module_unige_wiselib/greedyloc/greedyloc_processor.h"*/
+
+#include "sys/simulation/simulation_controller.h"
+#include "sys/simulation/simulation_task_keeper.h"
+#include <iostream>
+
+extern "C" void init_module_unige_wiselib( shawn::SimulationController& sc )
+{
+	std::cout << "Initialising UNIGE_WISELIB module" << std::endl;
+	wiselib::PLTT_ProcessorFactory::register_factory(sc);
+	//wiselib::PLTT_PassiveProcessorFactory::register_factory(sc);
+	//wiselib::PLTT_TargetProcessorFactory::register_factory(sc);
+	//wiselib::PLTT_TrackerProcessorFactory::register_factory(sc);
+	wiselib::LazyProcessorFactory::register_factory(sc);
+	//wiselib::GreedyProcessorFactory::register_factory(sc);
+	//wiselib::FaceProcessorFactory::register_factory(sc);
+	//wiselib::GFGProcessorFactory::register_factory(sc);
+	//wiselib::GRICProcessorFactory::register_factory(sc);
+	//wiselib::GreedylocProcessorFactory::register_factory(sc);
+}
+
+#endif

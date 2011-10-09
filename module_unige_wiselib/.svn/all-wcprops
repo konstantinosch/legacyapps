@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/wisebed/!svn/ver/4577/wiselib/trunk/shawn_apps/module_unige_wiselib
+END
+shawn_added.zip
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/wisebed/!svn/ver/3100/wiselib/trunk/shawn_apps/module_unige_wiselib/shawn_added.zip
+END
+module_unige_wiselib_init.h
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/wisebed/!svn/ver/3003/wiselib/trunk/shawn_apps/module_unige_wiselib/module_unige_wiselib_init.h
+END
+module.cmake
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/wisebed/!svn/ver/3003/wiselib/trunk/shawn_apps/module_unige_wiselib/module.cmake
+END
+bibs.txt
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/wisebed/!svn/ver/3003/wiselib/trunk/shawn_apps/module_unige_wiselib/bibs.txt
+END
+module_unige_wiselib_init.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/wisebed/!svn/ver/3762/wiselib/trunk/shawn_apps/module_unige_wiselib/module_unige_wiselib_init.cpp
+END
