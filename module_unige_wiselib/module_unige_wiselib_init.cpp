@@ -1,4 +1,4 @@
-#include "legacyapps/module_unige_wiselib/module_unige_wiselib_init.h"
+#include "module_unige_wiselib_init.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
 #include "legacyapps/module_unige_wiselib/pltt/PLTT_processor.h"
