@@ -1,6 +1,6 @@
 #ifndef __SHAWN_LEGACYAPPS_MODULE_UNIGE_WISELIB_PLTT_PROCESSOR_H
 #define __SHAWN_LEGACYAPPS_MODULE_UNIGE_WISELIB_PLTT_PROCESSOR_H
-#include "_legacyapps_enable_cmake.h"
+#include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
 #include "apps/wiselib/ext_iface_processor.h"
@@ -24,8 +24,8 @@
 #include <cstdlib>
 #include <math.h>
 
-#define MAX_NEIGHBORS_SUPPORTED 100
-#define MAX_TARGETS_SUPPORTED 100
+#define MAX_NEIGHBORS_SUPPORTED 400
+#define MAX_TARGETS_SUPPORTED 400
 
 using namespace shawn;
 using namespace std;

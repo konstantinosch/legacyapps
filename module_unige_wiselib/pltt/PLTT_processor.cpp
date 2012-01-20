@@ -164,13 +164,16 @@ namespace wiselib
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::receive( int from, long len, unsigned char* data, const ExtendedData& exdata ) throw()
 	{
-		shawn::ConstTagHandle passive_tag;
-		passive_tag = owner().find_tag( "passive_tag" );
-		const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
-		if ( pass_tag->value() == true)
+		if ( from != owner().id() )
 		{
-			//WRITE CODE HERE PASSIVE
-			return;
+			shawn::ConstTagHandle passive_tag;
+			passive_tag = owner().find_tag( "passive_tag" );
+			const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
+			if ( pass_tag->value() == true)
+			{
+				//WRITE CODE HERE PASSIVE
+				return;
+			}
 		}
 	}
 	//-------------------------------------------------------------------------------------------------
