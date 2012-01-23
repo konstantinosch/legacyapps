@@ -151,6 +151,21 @@ namespace wiselib
 			}
 			return;
 		}
+
+		if ( owner().current_time() == 1000 )
+		{
+			NeighborDiscovery::Protocol* p;
+			wiselib_debug_.debug(" node id %x\n", owner().id() );
+			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+			p->print( wiselib_debug_, wiselib_radio_ );
+			wiselib_debug_.debug("-----------\n", owner().id() );
+
+			wiselib_debug_.debug(" node id %x\n", owner().id() );
+			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
+			p->print( wiselib_debug_, wiselib_radio_ );
+			wiselib_debug_.debug("-----------\n", owner().id() );
+
+		}
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::target_waypoint(shawn::Vec destination)
