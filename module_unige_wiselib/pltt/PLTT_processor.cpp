@@ -152,7 +152,7 @@ namespace wiselib
 			return;
 		}
 
-		if ( owner().current_time() == 1000 )
+		if ( owner().current_time() == 500 )
 		{
 			NeighborDiscovery::Protocol* p;
 			wiselib_debug_.debug("----tr-----\n", owner().id() );
