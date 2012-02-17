@@ -117,24 +117,20 @@ namespace wiselib
 		passive->set_random_enable_timer_range( random_enable_timer_range );
 		passive->enable();
 		wiselib_radio_.reg_recv_callback<PLTT_Processor, &PLTT_Processor::receive>(this);
-
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::work( void ) throw()
 	{
-//		shawn::ConstTagHandle passive_tag;
-//		passive_tag = owner().find_tag( "passive_tag" );
-//		const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
-//		if ( pass_tag->value() == true)
-//		{
-//			//WRITE CODE HERE PASSIVE
-//			tags_from_traces();
-//			if ( this->owner().world().simulation_round() == 1999 )
-//			{
-//
-//			}
-//			return;
-//		}
+		shawn::ConstTagHandle passive_tag;
+		passive_tag = owner().find_tag( "passive_tag" );
+		const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
+		if ( pass_tag->value() == true)
+		{
+			//WRITE CODE HERE PASSIVE
+			tags_from_traces();
+			return;
+		}
+
 		shawn::ConstTagHandle target_tag;
 		target_tag = owner().find_tag( "target_tag" );
 		const shawn::BoolTag* tar_tag = dynamic_cast<const shawn::BoolTag*>( target_tag.get() );
@@ -152,22 +148,21 @@ namespace wiselib
 			return;
 		}
 
-		if ( owner().current_time() == 500 )
-		{
-			NeighborDiscovery::Protocol* p;
-			wiselib_debug_.debug("----tr-----\n", owner().id() );
-			wiselib_debug_.debug(" node id %x\n", owner().id() );
-			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-			p->print( wiselib_debug_, wiselib_radio_ );
-			wiselib_debug_.debug("-----------\n", owner().id() );
-			wiselib_debug_.debug("----vs-----\n", owner().id() );
-			wiselib_debug_.debug("----nb-----\n", owner().id() );
-			wiselib_debug_.debug(" node id %x\n", owner().id() );
-			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
-			p->print( wiselib_debug_, wiselib_radio_ );
-			wiselib_debug_.debug("-----------\n", owner().id() );
-
-		}
+//		if ( owner().current_time() == 500 )
+//		{
+//			NeighborDiscovery::Protocol* p;
+//			wiselib_debug_.debug("----tr-----\n", owner().id() );
+//			wiselib_debug_.debug(" node id %x\n", owner().id() );
+//			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+//			p->print( wiselib_debug_, wiselib_radio_ );
+//			wiselib_debug_.debug("-----------\n", owner().id() );
+//			wiselib_debug_.debug("----vs-----\n", owner().id() );
+//			wiselib_debug_.debug("----nb-----\n", owner().id() );
+//			wiselib_debug_.debug(" node id %x\n", owner().id() );
+//			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
+//			p->print( wiselib_debug_, wiselib_radio_ );
+//			wiselib_debug_.debug("-----------\n", owner().id() );
+//		}
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::target_waypoint(shawn::Vec destination)
@@ -196,45 +191,46 @@ namespace wiselib
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::tags_from_traces( void ) throw()
 	{
-//		shawn::TagContainer::tag_iterator ti = owner().begin_tags();
-//		while( ti != owner().end_tags() )
-//		{
-//			if ( ( ti->first != "passive_tag" ) && ( ti->first != "target_tag" ) /*&& ( ti->first != "tracker_tag" ) */&& ( ti->first != "vis_node_color" ) && (ti->first != "start_intensity") )
-//			{
-//				TagHandle trace_tag = owner_w().find_tag_w(ti->first);
-//				shawn::IntegerTag* it = dynamic_cast<shawn::IntegerTag*>( trace_tag.get() );
-//				owner_w().remove_tag_by_name(ti->first);
-//			}
-//			++ti;
-//		}
-//		for (PLTT_TraceList::iterator tr_i = (passive->get_traces())->begin(); tr_i != (passive->get_traces())->end(); ++tr_i)
-//		{
-//			ostringstream oss, oss2, oss3;
-//			if ((tr_i->get_parent().get_id() > 0) && (tr_i->get_intensity()!=0))
-//			{
-//				const shawn::SimulationEnvironment& se = owner().world().simulation_controller().environment();
-//				oss2.str("");
-//				oss2 << "target_color_" << tr_i->get_target_id();
-//				int target_color = se.required_int_param( oss2.str() );
-//
-//				oss3.str("");
-//				oss3 << "trace_start_intensity_" <<  tr_i->get_target_id();
-//				int start_intensity = se.required_int_param(oss3.str());
-//
-//				oss << tr_i->get_parent().get_id() << "." << tr_i->get_target_id() << "." << target_color << "." << start_intensity;
-//				TagHandle tag_h = owner_w().find_tag_w(oss.str());
-//				if ( tag_h.is_not_null() )
-//				{
-//					shawn::IntegerTag* trace_tag = dynamic_cast<shawn::IntegerTag*>(tag_h.get() );
-//					trace_tag->set_value( tr_i->get_intensity() );
-//				}
-//				else
-//				{
-//					shawn::IntegerTag* trace_tag = new shawn::IntegerTag( oss.str(), tr_i->get_intensity() );
-//					owner_w().add_tag( trace_tag );
-//				}
-//			}
-//		}
+		shawn::TagContainer::tag_iterator ti = owner().begin_tags();
+		while( ti != owner().end_tags() )
+		{
+			cout << ti->first << "\n";
+			if ( ( ti->first != "passive_tag" ) && ( ti->first != "target_tag" ) /*&& ( ti->first != "tracker_tag" ) */&& ( ti->first != "vis_node_color" ) && (ti->first != "start_intensity") )
+			{
+				TagHandle trace_tag = owner_w().find_tag_w(ti->first);
+				shawn::IntegerTag* it = dynamic_cast<shawn::IntegerTag*>( trace_tag.get() );
+				owner_w().remove_tag_by_name(ti->first);
+			}
+			++ti;
+		}
+		for (PLTT_TraceList::iterator tr_i = (passive->get_traces())->begin(); tr_i != (passive->get_traces())->end(); ++tr_i)
+		{
+			ostringstream oss, oss2, oss3;
+			if ((tr_i->get_parent().get_id() > 0) && (tr_i->get_intensity()!=0))
+			{
+				const shawn::SimulationEnvironment& se = owner().world().simulation_controller().environment();
+				oss2.str("");
+				oss2 << "target_color_" << tr_i->get_target_id();
+				int target_color = se.required_int_param( oss2.str() );
+
+				oss3.str("");
+				oss3 << "trace_start_intensity_" <<  tr_i->get_target_id();
+				int start_intensity = se.required_int_param(oss3.str());
+
+				oss << tr_i->get_parent().get_id() << "." << tr_i->get_target_id() << "." << target_color << "." << start_intensity;
+				TagHandle tag_h = owner_w().find_tag_w(oss.str());
+				if ( tag_h.is_not_null() )
+				{
+					shawn::IntegerTag* trace_tag = dynamic_cast<shawn::IntegerTag*>(tag_h.get() );
+					trace_tag->set_value( tr_i->get_intensity() );
+				}
+				else
+				{
+					shawn::IntegerTag* trace_tag = new shawn::IntegerTag( oss.str(), tr_i->get_intensity() );
+					owner_w().add_tag( trace_tag );
+				}
+			}
+		}
 	}
 
 
