@@ -194,7 +194,7 @@ namespace wiselib
 		shawn::TagContainer::tag_iterator ti = owner().begin_tags();
 		while( ti != owner().end_tags() )
 		{
-			cout << ti->first << "\n";
+			//cout << ti->first << "\n";
 			if ( ( ti->first != "passive_tag" ) && ( ti->first != "target_tag" ) /*&& ( ti->first != "tracker_tag" ) */&& ( ti->first != "vis_node_color" ) && (ti->first != "start_intensity") )
 			{
 				TagHandle trace_tag = owner_w().find_tag_w(ti->first);
