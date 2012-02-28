@@ -3,6 +3,8 @@
 #include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
+#define PLTT_SECURE
+
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
 #include "sys/event_scheduler.h"
@@ -23,6 +25,13 @@
 #include <ctime>
 #include <cstdlib>
 #include <math.h>
+
+#ifdef PLTT_SECURE
+#include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy.h"
+#include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy_message.h"
+#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_secure_trace_revision.h"
+#define MAX_SECURE_TRACES_SUPPORTED 400
+#endif
 
 #define MAX_NEIGHBORS_SUPPORTED 400
 #define MAX_TARGETS_SUPPORTED 400
@@ -53,6 +62,9 @@ typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Debug> Neighbor
 #ifdef PLTT_SECURE
 typedef wiselib::PLTT_SecureTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_SecureTrace;
 typedef wiselib::vector_static<Os, PLTT_SecureTrace, MAX_SECURE_TRACES_SUPPORTED> PLTT_SecureTraceList;
+typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
+typedef wiselib::vector_static<Os, PrivacyMessage, 100> PrivacyMessageList;
+typedef wiselib::PrivacyType<Os, Radio, Timer, PrivacyMessage, PrivacyMessageList, Debug> Privacy;
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
 typedef wiselib::vector_static<Os, PLTT_Trace, MAX_TARGETS_SUPPORTED> PLTT_TraceList;
@@ -85,6 +97,9 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 	private:
 		PLTT_Passive* passive;
 		PLTT_Target* target;
+#ifdef PLTT_SECURE
+		Privacy* privacy;
+#endif
 		NeighborDiscovery* neighbor_discovery;
 		ShawnOs os_;
 		Radio wiselib_radio_;
@@ -133,6 +148,11 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 		//int tracker_transmission_power;
 		//int tracker_color;
 		//IntensityNumber tracker_target_to_track_max_intensity;
+#ifdef PLTT_SECURE
+		int decryption_request_timer;
+		int decryption_request_offset;
+		int decryption_max_retries;
+#endif
 	};
 }
 
