@@ -52,7 +52,7 @@ typedef Os::Clock Clock;
 typedef Os::Timer Timer;
 typedef Timer::millis_t millis_t;
 typedef double CoordinatesNumber;
-typedef unsigned int IntensityNumber;
+typedef unsigned short int IntensityNumber;
 typedef int TimesNumber;
 typedef int SecondsNumber;
 
@@ -98,7 +98,9 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 		PLTT_Passive* passive;
 		PLTT_Target* target;
 #ifdef PLTT_SECURE
-		Privacy* privacy;
+		Privacy* helper;
+		Privacy* central_authority;
+		Privacy* privacy_target;
 #endif
 		NeighborDiscovery* neighbor_discovery;
 		ShawnOs os_;
@@ -107,8 +109,6 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 		Debug wiselib_debug_;
 		Rand wiselib_rand_;
 		Clock wiselib_clock_;
-		int number_of_trackers;
-		int number_of_targets;
 		shawn::Vec destination;
 		int target_movement_round_intervals;
 		int tracker_movement_round_intervals;

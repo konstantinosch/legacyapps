@@ -22,8 +22,6 @@ namespace wiselib
 	void PLTT_Processor::boot( void ) throw()
 	{	
 		const shawn::SimulationEnvironment& se = owner().world().simulation_controller().environment();
-		number_of_targets = se.required_int_param( "number_of_targets" );
-		number_of_targets = se.required_int_param( "number_of_targets" );
 		network_size_x = se.required_int_param( "network_size_x" );
 		network_size_y = se.required_int_param( "network_size_y" );
 		network_size_z = se.required_int_param( "network_size_z" );
@@ -44,12 +42,34 @@ namespace wiselib
 		owner_w().add_tag(target_tag);
 		shawn::BoolTag *passive_tag = new shawn::BoolTag( "passive_tag",false);
 		owner_w().add_tag(passive_tag);
-		for (int i=0; i < number_of_targets; i++)
+#ifdef PLTT_SECURE
+		shawn::BoolTag *central_authority_tag = new shawn::BoolTag( "central_authority_tag", false );
+		owner_w().add_tag( central_authority_tag );
+		shawn::BoolTag *helper_tag = new shawn::BoolTag( "helper_tag", false );
+		owner_w().add_tag( helper_tag );
+#endif
+		for (int i=0; i< owner().world().active_nodes_count(); i++ )
+		{
+			ostringstream oss;
+			oss << "central_authority_id_" << i;
+			if ( se.optional_int_param( oss.str(), -1 ) == owner().id() )
+			{
+				os_.proc = this;
+				owner_w().set_real_position( shawn::Vec( 0, 0, 0 ) );
+				central_authority = new Privacy();
+				central_authority->set_encryption();
+				central_authority->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
+				central_authority->enable();
+				return;
+			}
+		}
+		for (int i=0; i < owner().world().active_nodes_count(); i++)
 		{
 			ostringstream oss;
 			oss << "target_id_" << i;
-			if ( se.required_int_param( oss.str() ) == owner().id() )
+			if ( se.optional_int_param( oss.str(), -1 ) == owner().id() )
 			{
+				owner_w().set_real_position( shawn::Vec( 0, 0, 0 ) );
 				TagHandle tag_h = owner_w().find_tag_w("target_tag");
 				shawn::BoolTag *pass_tag = dynamic_cast<shawn::BoolTag*>( tag_h.get() );
 				pass_tag->set_value( true );
@@ -93,19 +113,25 @@ namespace wiselib
 #ifndef PLTT_SECURE
 				target = new PLTT_Target( PLTT_Trace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0) , target_spread_milis, target_transmission_power );
 #else
+				INFO( logger(), "bla1" );
 				target = new PLTT_Target( PLTT_SecureTrace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0 ), target_spread_milis, target_transmission_power );
-				//PLTT_SecureTrace* st = new PLTT_SecureTrace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0 );
-				//privacy = new Privacy();
-				//target->set_request_id( i );
-				//privacy->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
-				//target->reg_privacy_radio_callback<Privacy, &Privacy::radio_receive>( &(*privacy) );
-				//privacy->reg_privacy_callback<PLTT_Target, &PLTT_Target::randomize_callback>( 999, &(*target) );
-				//privacy->enable();
+				INFO( logger(), "bla2" );
+				privacy_target = new Privacy();
+				privacy_target->set_randomization();
+				target->set_request_id( i );
+				privacy_target->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
+				target->reg_privacy_radio_callback<Privacy, &Privacy::radio_receive>( &(*privacy_target) );
+				privacy_target->reg_privacy_callback<PLTT_Target, &PLTT_Target::randomize_callback>( 999, &(*target) );
+				privacy_target->enable();
 #endif
-				//target->init(wiselib_radio_, wiselib_timer_, wiselib_clock_, wiselib_debug_);
-				//target->set_self( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) );
-				//target->enable();
+				target->init(wiselib_radio_, wiselib_timer_, wiselib_clock_, wiselib_debug_);
+				target->set_self( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) );
+				target->enable();
 				return;
+			}
+			else
+			{
+
 			}
 		}
 		TagHandle tag_h = owner_w().find_tag_w("passive_tag");
@@ -117,11 +143,11 @@ namespace wiselib
 		oss << "passive." << owner().id();
 		this->owner_w().set_label(oss.str());
 		//passive = new PLTT_Passive();
-		neighbor_discovery = new NeighborDiscovery();
+		//neighbor_discovery = new NeighborDiscovery();
 
 		os_.proc = this;
 		//passive->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_rand_, wiselib_clock_, *neighbor_discovery );
-		neighbor_discovery->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_clock_ );
+		//neighbor_discovery->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_clock_ );
 		//passive->set_self( PLTT_Node( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) ) );
 		//passive->set_intensity_detection_threshold( intensity_detection_threshold );
 		//passive->set_nb_convergence_time( nb_convergence_time );
@@ -142,6 +168,7 @@ namespace wiselib
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::work( void ) throw()
 	{
+		INFO( logger(), "bla1" );
 //		shawn::ConstTagHandle passive_tag;
 //		passive_tag = owner().find_tag( "passive_tag" );
 //		const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
@@ -188,26 +215,26 @@ namespace wiselib
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::target_waypoint(shawn::Vec destination)
 	{
-		double theta = atan2( ( destination.y() - owner().real_position().y()  ) , ( destination.x() - owner().real_position().x() ) );
-		double x_int = cos( theta ) * target_movement_distance_intervals;
-		double y_int = sin( theta ) * target_movement_distance_intervals;
-		owner_w().set_real_position( shawn::Vec( owner().real_position().x() + x_int, owner().real_position().y() + y_int ) );
-		target->get_self()->set_position( Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) );
+//		double theta = atan2( ( destination.y() - owner().real_position().y()  ) , ( destination.x() - owner().real_position().x() ) );
+//		double x_int = cos( theta ) * target_movement_distance_intervals;
+//		double y_int = sin( theta ) * target_movement_distance_intervals;
+//		owner_w().set_real_position( shawn::Vec( owner().real_position().x() + x_int, owner().real_position().y() + y_int ) );
+//		target->get_self()->set_position( Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) );
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::receive( int from, long len, unsigned char* data, const ExtendedData& exdata ) throw()
 	{
-		if ( from != owner().id() )
-		{
-			shawn::ConstTagHandle passive_tag;
-			passive_tag = owner().find_tag( "passive_tag" );
-			const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
-			if ( pass_tag->value() == true)
-			{
-				//WRITE CODE HERE PASSIVE
-				return;
-			}
-		}
+//		if ( from != owner().id() )
+//		{
+//			shawn::ConstTagHandle passive_tag;
+//			passive_tag = owner().find_tag( "passive_tag" );
+//			const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
+//			if ( pass_tag->value() == true)
+//			{
+//				//WRITE CODE HERE PASSIVE
+//				return;
+//			}
+//		}
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::tags_from_traces( void ) throw()
