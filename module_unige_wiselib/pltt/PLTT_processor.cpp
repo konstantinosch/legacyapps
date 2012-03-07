@@ -47,7 +47,6 @@ namespace wiselib
 		owner_w().add_tag( central_authority_tag );
 		shawn::BoolTag *helper_tag = new shawn::BoolTag( "helper_tag", false );
 		owner_w().add_tag( helper_tag );
-#endif
 		for (int i=0; i< owner().world().active_nodes_count(); i++ )
 		{
 			ostringstream oss;
@@ -63,6 +62,7 @@ namespace wiselib
 				return;
 			}
 		}
+#endif
 		for (int i=0; i < owner().world().active_nodes_count(); i++)
 		{
 			ostringstream oss;
@@ -129,10 +129,6 @@ namespace wiselib
 				target->enable();
 				return;
 			}
-			else
-			{
-
-			}
 		}
 		TagHandle tag_h = owner_w().find_tag_w("passive_tag");
 		shawn::BoolTag *pass_tag = dynamic_cast<shawn::BoolTag*>( tag_h.get() );
@@ -142,49 +138,51 @@ namespace wiselib
 		ostringstream oss;
 		oss << "passive." << owner().id();
 		this->owner_w().set_label(oss.str());
-		//passive = new PLTT_Passive();
-		//neighbor_discovery = new NeighborDiscovery();
-
+		passive = new PLTT_Passive();
+		neighbor_discovery = new NeighborDiscovery();
 		os_.proc = this;
-		//passive->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_rand_, wiselib_clock_, *neighbor_discovery );
-		//neighbor_discovery->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_clock_ );
-		//passive->set_self( PLTT_Node( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) ) );
-		//passive->set_intensity_detection_threshold( intensity_detection_threshold );
-		//passive->set_nb_convergence_time( nb_convergence_time );
-		//passive->set_backoff_connectivity_weight( backoff_connectivity_weight );
-		//passive->set_backoff_lqi_weight( backoff_lqi_weight );
-		//passive->set_backoff_random_weight( backoff_random_weight );
-		//passive->set_backoff_candidate_list_weight( backoff_candidate_list_weight );
-		//passive->set_transmission_power_dB( transmission_power_db );
-		//passive->set_random_enable_timer_range( random_enable_timer_range );
+		passive->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_rand_, wiselib_clock_, *neighbor_discovery );
+		neighbor_discovery->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_clock_ );
+		passive->set_self( PLTT_Node( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) ) );
+		passive->set_intensity_detection_threshold( intensity_detection_threshold );
+		passive->set_nb_convergence_time( nb_convergence_time );
+		passive->set_backoff_connectivity_weight( backoff_connectivity_weight );
+		passive->set_backoff_lqi_weight( backoff_lqi_weight );
+		passive->set_backoff_random_weight( backoff_random_weight );
+		passive->set_backoff_candidate_list_weight( backoff_candidate_list_weight );
+		passive->set_transmission_power_dB( transmission_power_db );
+		passive->set_random_enable_timer_range( random_enable_timer_range );
 #ifdef PLTT_SECURE
-		//passive->set_decryption_request_timer( decryption_request_timer );
-		//passive->set_decryption_request_offset( decryption_request_offset );
-		//passive->set_decryption_max_retries( decryption_max_retries );
+		passive->set_decryption_request_timer( decryption_request_timer );
+		passive->set_decryption_request_offset( decryption_request_offset );
+		passive->set_decryption_max_retries( decryption_max_retries );
 #endif
-		//passive->enable();
-		//wiselib_radio_.reg_recv_callback<PLTT_Processor, &PLTT_Processor::receive>(this);
+		passive->enable();
+		wiselib_radio_.reg_recv_callback<PLTT_Processor, &PLTT_Processor::receive>(this);
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::work( void ) throw()
 	{
-		INFO( logger(), "bla1" );
+
 //		shawn::ConstTagHandle passive_tag;
 //		passive_tag = owner().find_tag( "passive_tag" );
 //		const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
 //		if ( pass_tag->value() == true)
 //		{
-//			//WRITE CODE HERE PASSIVE
-//			tags_from_traces();
+//			//**
+//			//PASSIVE SPECIFIC CODE
+//			//**
+//			//tags_from_traces();
 //			return;
 //		}
-
 //		shawn::ConstTagHandle target_tag;
 //		target_tag = owner().find_tag( "target_tag" );
 //		const shawn::BoolTag* tar_tag = dynamic_cast<const shawn::BoolTag*>( target_tag.get() );
 //		if ( tar_tag->value() == true )
 //		{
-//			//WRITE CODE HERE TARGET
+//			//**
+//			//TARGET SPECIFIC CODE
+//			//**
 //			if ( ( (int) ( ((int) owner().current_time() ) % target_movement_round_intervals == 0 ) ) && (owner().current_time() != 0) )
 //			{
 //				target_waypoint( destination );
@@ -195,22 +193,23 @@ namespace wiselib
 //			}
 //			return;
 //		}
-
-//		if ( owner().current_time() == 500 )
-//		{
-//			NeighborDiscovery::Protocol* p;
-//			wiselib_debug_.debug("----tr-----\n", owner().id() );
-//			wiselib_debug_.debug(" node id %x\n", owner().id() );
-//			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-//			p->print( wiselib_debug_, wiselib_radio_ );
-//			wiselib_debug_.debug("-----------\n", owner().id() );
-//			wiselib_debug_.debug("----vs-----\n", owner().id() );
-//			wiselib_debug_.debug("----nb-----\n", owner().id() );
-//			wiselib_debug_.debug(" node id %x\n", owner().id() );
-//			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
-//			p->print( wiselib_debug_, wiselib_radio_ );
-//			wiselib_debug_.debug("-----------\n", owner().id() );
-//		}
+		//wiselib_debug_.debug(" time : %f", owner().current_time() );
+		//wiselib_debug_.debug( "nb status %d \n", neighbor_discovery->get_status() );
+		if ( owner().current_time() == 99 )
+		{
+			NeighborDiscovery::Protocol* p;
+			//wiselib_debug_.debug("----tr-----\n", owner().id() );
+			//wiselib_debug_.debug(" node id %x\n", owner().id() );
+			p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
+			//p->print( wiselib_debug_, wiselib_radio_ );
+			//wiselib_debug_.debug("-----------\n", owner().id() );
+			//wiselib_debug_.debug("----vs-----\n", owner().id() );
+			//wiselib_debug_.debug("----nb-----\n", owner().id() );
+			//wiselib_debug_.debug(" node id %x\n", owner().id() );
+			//p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
+			p->print( wiselib_debug_, wiselib_radio_ );
+			//wiselib_debug_.debug("-----------\n", owner().id() );
+		}
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::target_waypoint(shawn::Vec destination)
@@ -224,17 +223,19 @@ namespace wiselib
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::receive( int from, long len, unsigned char* data, const ExtendedData& exdata ) throw()
 	{
-//		if ( from != owner().id() )
-//		{
-//			shawn::ConstTagHandle passive_tag;
-//			passive_tag = owner().find_tag( "passive_tag" );
-//			const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
-//			if ( pass_tag->value() == true)
-//			{
-//				//WRITE CODE HERE PASSIVE
-//				return;
-//			}
-//		}
+		if ( from != owner().id() )
+		{
+			shawn::ConstTagHandle passive_tag;
+			passive_tag = owner().find_tag( "passive_tag" );
+			const shawn::BoolTag* pass_tag = dynamic_cast<const shawn::BoolTag*>( passive_tag.get() );
+			if ( pass_tag->value() == true)
+			{
+				//**
+				//PASSIVE SPECIFIC CODE
+				//**
+				return;
+			}
+		}
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::tags_from_traces( void ) throw()
