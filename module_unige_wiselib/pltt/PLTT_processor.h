@@ -126,9 +126,13 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 		//IntensityNumber tracker_trace_start_intensity;
 		IntensityNumber trace_spread_penalty;
 		//IntensityNumber tracker_trace_spread_penalty;
+
 		CoordinatesNumber network_size_x;
 		CoordinatesNumber network_size_y;
 		CoordinatesNumber network_size_z;
+		CoordinatesNumber communication_range;
+		double communication_range_mutator;
+
 		int intensity_detection_threshold;
 		millis_t nb_convergence_time;
 		int backoff_connectivity_weight;

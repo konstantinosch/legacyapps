@@ -22,9 +22,16 @@ namespace wiselib
 	void PLTT_Processor::boot( void ) throw()
 	{	
 		const shawn::SimulationEnvironment& se = owner().world().simulation_controller().environment();
+
+		//***topology attributes
 		network_size_x = se.required_int_param( "network_size_x" );
 		network_size_y = se.required_int_param( "network_size_y" );
 		network_size_z = se.required_int_param( "network_size_z" );
+		communication_range = se.required_int_param( "communication_range" );
+		communication_range_mutator = se.required_double_param( "communication_range_mutator");
+		//***
+
+		//***passive node attributes
 		intensity_detection_threshold = se.required_int_param( "intensity_detection_threshold" );
 		nb_convergence_time = se.required_int_param( "nb_convergence_time" );
 		backoff_connectivity_weight = se.required_int_param( "backoff_connectivity_weight" );
@@ -33,10 +40,14 @@ namespace wiselib
 		backoff_candidate_list_weight = se.required_int_param( "backoff_candidate_list_weight" );
 		transmission_power_db = se.required_int_param( "transmission_power_db" );
 		random_enable_timer_range = se.required_int_param( "random_enable_timer_range" );
+		//***
+
 #ifdef PLTT_SECURE
+		//***privacy_node attributes
 		decryption_request_timer = se.required_int_param( "decryption_request_timer" );
 		decryption_request_offset = se.required_int_param( "decryption_request_offset" );
 		decryption_max_retries = se.required_int_param( "decryption_max_retries" );
+		//***
 #endif
 		shawn::BoolTag *target_tag = new shawn::BoolTag( "target_tag",false);
 		owner_w().add_tag(target_tag);
@@ -47,12 +58,16 @@ namespace wiselib
 		owner_w().add_tag( central_authority_tag );
 		shawn::BoolTag *helper_tag = new shawn::BoolTag( "helper_tag", false );
 		owner_w().add_tag( helper_tag );
+
 		for ( int i=0; i< owner().world().active_nodes_count(); i++ )
 		{
 			ostringstream oss;
 			oss << "central_authority_id_" << i;
 			if ( se.optional_int_param( oss.str(), -1 ) == owner().id() )
 			{
+				TagHandle tag_h = owner_w().find_tag_w("central_authority_tag");
+				shawn::BoolTag *ca_tag = dynamic_cast<shawn::BoolTag*>( tag_h.get() );
+				ca_tag->set_value( true );
 				os_.proc = this;
 				owner_w().set_real_position( shawn::Vec( 0, 0, 0 ) );
 				central_authority = new Privacy();
@@ -62,33 +77,30 @@ namespace wiselib
 				return;
 			}
 		}
-//		for ( int i=0; i< owner().world().active_nodes_count(); i++ )
-//		{
-//			ostringstream oss;
-//			oss << "helper_id_" << i;
-//			if ( se.optional_int_param( oss.str(), -1 ) == owner().id() )
-//			{
-
-				//int R;
-				//if ( ( R + i*2R ) > D )
-				//{
-				//
-				//}
-
-
-
-				//owner_w().set_real_position( shawn::Vec( R + i*2R, R + i*2R) );
-//				os_.proc = this;
-//				helper = new Privacy();
-//				helper->set_decryption();
-//				helper->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
-//				helper->enable();
-//				return;
-//			}
-//		}
-		for ( int i=0; i < 10; i++ )
+		CoordinatesNumber helper_d = communication_range_mutator * communication_range;
+		CoordinatesNumber helper_step_x = network_size_x / ( 2 * helper_d );
+		CoordinatesNumber helper_step_y = network_size_y / ( 2 * helper_d );
+		CoordinatesNumber helper_step_z = network_size_z / ( 2 * helper_d );
+		int helper_i = owner().id();
+		if ( helper_i < helper_step_x * helper_step_y )
 		{
-
+			printf("helper %d - stepx %f : stepy %f : stepz %f : d %f\n", helper_i, helper_d, helper_step_x, helper_step_y, helper_step_z );
+			TagHandle tag_h = owner_w().find_tag_w("helper_tag");
+			shawn::BoolTag *hlpr_tag = dynamic_cast<shawn::BoolTag*>( tag_h.get() );
+			hlpr_tag->set_value( true );
+			CoordinatesNumber index_i = fmod( helper_i, helper_step_x);
+			CoordinatesNumber index_j = helper_i / helper_step_x;
+			CoordinatesNumber helper_coord_x = /*helper_d*/ + index_i * 2 * helper_d;
+			CoordinatesNumber helper_coord_y = /*helper_d*/ + index_j * 2 * helper_d;
+			CoordinatesNumber helper_coord_z = 0;
+			owner_w().set_real_position( shawn::Vec( helper_coord_x, helper_coord_y, helper_coord_z ) );
+			os_.proc = this;
+			helper = new Privacy();
+			helper->set_decryption();
+			helper->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
+			helper->enable();
+			owner_w().add_tag(new shawn::DoubleTag( "vis_node_color", 666 ) );
+			return;
 		}
 #endif
 		for (int i=0; i < owner().world().active_nodes_count(); i++)
