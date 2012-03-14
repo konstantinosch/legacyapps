@@ -156,6 +156,7 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 		int decryption_request_timer;
 		int decryption_request_offset;
 		int decryption_max_retries;
+		int helper_color;
 #endif
 	};
 }

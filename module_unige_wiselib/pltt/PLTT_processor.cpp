@@ -47,18 +47,26 @@ namespace wiselib
 		decryption_request_timer = se.required_int_param( "decryption_request_timer" );
 		decryption_request_offset = se.required_int_param( "decryption_request_offset" );
 		decryption_max_retries = se.required_int_param( "decryption_max_retries" );
+		helper_color = se.required_int_param( "helper_color" );
 		//***
 #endif
+		//**tracking tags setup
 		shawn::BoolTag *target_tag = new shawn::BoolTag( "target_tag",false);
 		owner_w().add_tag(target_tag);
 		shawn::BoolTag *passive_tag = new shawn::BoolTag( "passive_tag",false);
 		owner_w().add_tag(passive_tag);
+		//**
+
 #ifdef PLTT_SECURE
+
+		//***privacy tags setup
 		shawn::BoolTag *central_authority_tag = new shawn::BoolTag( "central_authority_tag", false );
 		owner_w().add_tag( central_authority_tag );
 		shawn::BoolTag *helper_tag = new shawn::BoolTag( "helper_tag", false );
 		owner_w().add_tag( helper_tag );
+		//***
 
+		//**central authority nodes setup
 		for ( int i=0; i< owner().world().active_nodes_count(); i++ )
 		{
 			ostringstream oss;
@@ -77,32 +85,44 @@ namespace wiselib
 				return;
 			}
 		}
-		CoordinatesNumber helper_d = communication_range_mutator * communication_range;
-		CoordinatesNumber helper_step_x = network_size_x / ( 2 * helper_d );
-		CoordinatesNumber helper_step_y = network_size_y / ( 2 * helper_d );
-		CoordinatesNumber helper_step_z = network_size_z / ( 2 * helper_d );
+		//***
+
+		//***helper nodes
+		CoordinatesNumber helper_d = 2 * communication_range_mutator * communication_range;
+		CoordinatesNumber helper_step_x = floor( network_size_x / ( helper_d / sqrt(2) ) );
+		CoordinatesNumber helper_step_y = floor( network_size_y / ( helper_d / sqrt(2) ) );
+		CoordinatesNumber helper_step_z = floor( network_size_z / ( helper_d / sqrt(2) ) );
 		int helper_i = owner().id();
-		if ( helper_i < helper_step_x * helper_step_y )
+		if ( helper_i <helper_step_x * helper_step_y )
 		{
-			printf("helper %d - stepx %f : stepy %f : stepz %f : d %f\n", helper_i, helper_d, helper_step_x, helper_step_y, helper_step_z );
+
 			TagHandle tag_h = owner_w().find_tag_w("helper_tag");
 			shawn::BoolTag *hlpr_tag = dynamic_cast<shawn::BoolTag*>( tag_h.get() );
 			hlpr_tag->set_value( true );
-			CoordinatesNumber index_i = fmod( helper_i, helper_step_x);
-			CoordinatesNumber index_j = helper_i / helper_step_x;
-			CoordinatesNumber helper_coord_x = /*helper_d*/ + index_i * 2 * helper_d;
-			CoordinatesNumber helper_coord_y = /*helper_d*/ + index_j * 2 * helper_d;
+			owner_w().add_tag(new shawn::DoubleTag( "vis_node_color", helper_color ) );
+
+			CoordinatesNumber index_j = ( (int) helper_i ) % ( (int) helper_step_x ) ;
+			CoordinatesNumber index_i = ( (int) helper_i ) / ( (int) helper_step_x );
+
+			CoordinatesNumber helper_coord_y = ( network_size_x / helper_step_x ) / 2 + index_i * ( network_size_x / helper_step_x );
+			CoordinatesNumber helper_coord_x = ( network_size_y / helper_step_y ) / 2 + index_j * ( network_size_y / helper_step_y );
 			CoordinatesNumber helper_coord_z = 0;
+
+			printf("helper %d - helper_d %f : stepx %f : stepy %f : stepz %f\n", helper_i, helper_d, helper_step_x, helper_step_y, helper_step_z );
+			printf(" coordx : %f, coordy : %f, coordz %f : index_i : %f, index_j : %f\n", helper_coord_x, helper_coord_y, helper_coord_z, index_i, index_j );
 			owner_w().set_real_position( shawn::Vec( helper_coord_x, helper_coord_y, helper_coord_z ) );
+
 			os_.proc = this;
 			helper = new Privacy();
 			helper->set_decryption();
 			helper->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
 			helper->enable();
-			owner_w().add_tag(new shawn::DoubleTag( "vis_node_color", 666 ) );
 			return;
 		}
+		//***
+
 #endif
+		//***target nodes
 		for (int i=0; i < owner().world().active_nodes_count(); i++)
 		{
 			ostringstream oss;
@@ -168,6 +188,9 @@ namespace wiselib
 				return;
 			}
 		}
+		//***
+
+		//***passive nodes (leftovers)
 		TagHandle tag_h = owner_w().find_tag_w("passive_tag");
 		shawn::BoolTag *pass_tag = dynamic_cast<shawn::BoolTag*>( tag_h.get() );
 		pass_tag->set_value( true );
@@ -195,6 +218,8 @@ namespace wiselib
 		passive->set_decryption_max_retries( decryption_max_retries );
 #endif
 		passive->enable();
+		//****
+
 		wiselib_radio_.reg_recv_callback<PLTT_Processor, &PLTT_Processor::receive>(this);
 	}
 	//-------------------------------------------------------------------------------------------------
