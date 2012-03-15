@@ -52,7 +52,7 @@ typedef Os::Clock Clock;
 typedef Os::Timer Timer;
 typedef Timer::millis_t millis_t;
 typedef double CoordinatesNumber;
-typedef unsigned short int IntensityNumber;
+typedef int8_t IntensityNumber;
 typedef int TimesNumber;
 typedef int SecondsNumber;
 
