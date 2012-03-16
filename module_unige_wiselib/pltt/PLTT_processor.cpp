@@ -48,6 +48,7 @@ namespace wiselib
 		decryption_request_offset = se.required_int_param( "decryption_request_offset" );
 		decryption_max_retries = se.required_int_param( "decryption_max_retries" );
 		helper_color = se.required_int_param( "helper_color" );
+		privacy_power_db = se.required_int_param( "privacy_power_db");
 		//***
 #endif
 		//**tracking tags setup
@@ -81,6 +82,7 @@ namespace wiselib
 				central_authority = new Privacy();
 				central_authority->set_encryption();
 				central_authority->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
+				central_authority->set_privacy_power_db( privacy_power_db );
 				central_authority->enable();
 				return;
 			}
@@ -116,6 +118,7 @@ namespace wiselib
 			helper = new Privacy();
 			helper->set_decryption();
 			helper->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
+			helper->set_privacy_power_db( privacy_power_db );
 			helper->enable();
 			return;
 		}
@@ -180,6 +183,7 @@ namespace wiselib
 				privacy_target->init( wiselib_radio_, wiselib_debug_, wiselib_timer_ );
 				target->reg_privacy_radio_callback<Privacy, &Privacy::radio_receive>( &(*privacy_target) );
 				privacy_target->reg_privacy_callback<PLTT_Target, &PLTT_Target::randomize_callback>( 999, &(*target) );
+				privacy_target->set_privacy_power_db( privacy_power_db );
 				privacy_target->enable();
 #endif
 				target->init(wiselib_radio_, wiselib_timer_, wiselib_clock_, wiselib_debug_);
