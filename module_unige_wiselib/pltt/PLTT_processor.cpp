@@ -46,6 +46,7 @@ namespace wiselib
 		//***privacy_node attributes
 		decryption_request_timer = se.required_int_param( "decryption_request_timer" );
 		decryption_request_offset = se.required_int_param( "decryption_request_offset" );
+		erase_daemon_timer = se.required_int_param( "erase_daemon_timer" );
 		decryption_max_retries = se.required_int_param( "decryption_max_retries" );
 		helper_color = se.required_int_param( "helper_color" );
 		privacy_power_db = se.required_int_param( "privacy_power_db");
@@ -220,6 +221,7 @@ namespace wiselib
 		passive->set_decryption_request_timer( decryption_request_timer );
 		passive->set_decryption_request_offset( decryption_request_offset );
 		passive->set_decryption_max_retries( decryption_max_retries );
+		passive->set_erase_daemon_timer( erase_daemon_timer );
 #endif
 		passive->enable();
 		//****

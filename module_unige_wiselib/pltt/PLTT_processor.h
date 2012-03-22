@@ -3,7 +3,7 @@
 #include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
-#define PLTT_SECURE
+//#define PLTT_SECURE
 
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
@@ -155,6 +155,7 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 #ifdef PLTT_SECURE
 		int decryption_request_timer;
 		int decryption_request_offset;
+		int erase_daemon_timer;
 		int decryption_max_retries;
 		int helper_color;
 		int privacy_power_db;
