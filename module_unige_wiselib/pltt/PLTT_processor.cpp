@@ -52,6 +52,7 @@ namespace wiselib
 		privacy_power_db = se.required_int_param( "privacy_power_db");
 		//***
 #endif
+
 		//**tracking tags setup
 		shawn::BoolTag *target_tag = new shawn::BoolTag( "target_tag",false);
 		owner_w().add_tag(target_tag);
