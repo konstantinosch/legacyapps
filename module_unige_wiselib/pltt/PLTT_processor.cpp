@@ -206,6 +206,7 @@ namespace wiselib
 		this->owner_w().set_label(oss.str());
 		passive = new PLTT_Passive();
 		neighbor_discovery = new NeighborDiscovery();
+		neighbor_discovery->set_coords( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() );
 		os_.proc = this;
 		passive->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_rand_, wiselib_clock_, *neighbor_discovery );
 		neighbor_discovery->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_clock_ );

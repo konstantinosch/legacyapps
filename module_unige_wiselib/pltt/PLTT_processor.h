@@ -4,7 +4,6 @@
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
 //#define PLTT_SECURE
-#define NB_COORD_SUPPORT
 
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
@@ -59,11 +58,7 @@ typedef int SecondsNumber;
 
 typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
 typedef wiselib::NodeType<Os, Radio, node_id_t, Position, Debug> Node;
-#ifdef NB_COORD_SUPPORT
-typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Position, Debug> NeighborDiscovery;
-#else
 typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Debug> NeighborDiscovery;
-#endif
 #ifdef PLTT_SECURE
 typedef wiselib::PLTT_SecureTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_SecureTrace;
 typedef wiselib::vector_static<Os, PLTT_SecureTrace, MAX_SECURE_TRACES_SUPPORTED> PLTT_SecureTraceList;
