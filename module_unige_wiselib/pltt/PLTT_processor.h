@@ -3,7 +3,7 @@
 #include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
-//#define PLTT_SECURE
+#define CONFIG_PLTT_PRIVACY
 
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
@@ -15,10 +15,13 @@
 #include "../../../wiselib/wiselib.testing/internal_interface/position/position_new.h"
 #include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_node.h"
 #include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_node_target.h"
-#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_trace_revision.h"
-#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_passive_nb_revision.h"
+#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_trace.h"
+#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_passive.h"
 #include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_target.h"
+#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_agent.h"
+#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_tracker.h"
 #include "../../../wiselib/wiselib.testing/algorithms/neighbor_discovery/neighbor_discovery.h"
+#include "../../../wiselib/wiselib.testing/radio/reliable/reliable_radio_simple.h"
 #include <iostream>
 #include <sstream>
 #include "sys/vec.h"
@@ -26,15 +29,15 @@
 #include <cstdlib>
 #include <math.h>
 
-#ifdef PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 #include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy.h"
 #include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy_message.h"
-#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_secure_trace_revision.h"
-#define MAX_SECURE_TRACES_SUPPORTED 400
+#include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_privacy_trace.h"
+#define PLTT_MAX_PRIVACY_TRACES_SUPPORTED 400
 #endif
 
-#define MAX_NEIGHBORS_SUPPORTED 400
-#define MAX_TARGETS_SUPPORTED 400
+#define PLTT_MAX_NEIGHBORS_SUPPORTED 400
+#define PLTT_MAX_TARGETS_SUPPORTED 400
 
 using namespace shawn;
 using namespace std;
@@ -52,35 +55,35 @@ typedef Os::Clock Clock;
 typedef Os::Timer Timer;
 typedef Timer::millis_t millis_t;
 typedef double CoordinatesNumber;
-typedef int8_t IntensityNumber;
+typedef uint8_t IntensityNumber;
 typedef int TimesNumber;
 typedef int SecondsNumber;
-
+typedef int AgentID;
 typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
 typedef wiselib::NodeType<Os, Radio, node_id_t, Position, Debug> Node;
-typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Debug> NeighborDiscovery;
-#ifdef PLTT_SECURE
-typedef wiselib::PLTT_SecureTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_SecureTrace;
-typedef wiselib::vector_static<Os, PLTT_SecureTrace, MAX_SECURE_TRACES_SUPPORTED> PLTT_SecureTraceList;
-typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
-typedef wiselib::vector_static<Os, PrivacyMessage, 100> PrivacyMessageList;
-typedef wiselib::PrivacyType<Os, Radio, Timer, PrivacyMessage, PrivacyMessageList, Debug> Privacy;
+typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> NeighborDiscovery;
+typedef wiselib::ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> ReliableRadio;
+#ifdef CONFIG_PLTT_PRIVACY
+	typedef wiselib::PLTT_PrivacyTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_PrivacyTrace;
+	typedef wiselib::vector_static<Os, PLTT_PrivacyTrace, PLTT_MAX_PRIVACY_TRACES_SUPPORTED> PLTT_PrivacyTraceList;
+	typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
+	typedef wiselib::vector_static<Os, PrivacyMessage, 100> PrivacyMessageList;
+	typedef wiselib::PrivacyType<Os, Radio, Timer, PrivacyMessage, PrivacyMessageList, Debug> Privacy;
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
-typedef wiselib::vector_static<Os, PLTT_Trace, MAX_TARGETS_SUPPORTED> PLTT_TraceList;
+typedef wiselib::vector_static<Os, PLTT_Trace, PLTT_MAX_TARGETS_SUPPORTED> PLTT_TraceList;
 typedef wiselib::PLTT_NodeTargetType<Os, Radio, node_id_t, IntensityNumber, Debug > PLTT_NodeTarget;
-typedef wiselib::vector_static<Os, PLTT_NodeTarget, MAX_TARGETS_SUPPORTED> PLTT_NodeTargetList;
+typedef wiselib::vector_static<Os, PLTT_NodeTarget, PLTT_MAX_TARGETS_SUPPORTED> PLTT_NodeTargetList;
 typedef wiselib::PLTT_NodeType<Os, Radio, Node, PLTT_NodeTarget, PLTT_NodeTargetList, PLTT_TraceList, Debug> PLTT_Node;
-typedef wiselib::vector_static<Os, PLTT_Node, MAX_NEIGHBORS_SUPPORTED> PLTT_NodeList;
-#ifdef PLTT_SECURE
-typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_SecureTrace, PLTT_SecureTraceList, NeighborDiscovery, Timer, Radio, Rand, Clock, Debug> PLTT_Passive;
+typedef wiselib::vector_static<Os, PLTT_Node, PLTT_MAX_NEIGHBORS_SUPPORTED> PLTT_NodeList;
+typedef wiselib::PLTT_AgentType< Os, Radio, AgentID, IntensityNumber, Debug> PLTT_Agent;
+typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumber, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Tracker;
+#ifdef CONFIG_PLTT_PRIVACY
+	typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_PrivacyTrace, PLTT_PrivacyTraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Passive;
+	typedef wiselib::PLTT_TargetType<Os, PLTT_PrivacyTrace, Node, Timer, Radio, PrivacyMessage, Clock, Debug> PLTT_Target;
 #else
-typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, NeighborDiscovery, Timer, Radio, Rand, Clock, Debug> PLTT_Passive;
-#endif
-#ifdef PLTT_SECURE
-typedef wiselib::PLTT_TargetType<Os, PLTT_SecureTrace, Node, Timer, Radio, PrivacyMessage, Clock, Debug> PLTT_Target;
-#else
-typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debug> PLTT_Target;
+	typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debug> PLTT_Target;
+	typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Passive;
 #endif
 
 	class PLTT_Processor : public virtual ExtIfaceProcessor
@@ -97,7 +100,7 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 	private:
 		PLTT_Passive* passive;
 		PLTT_Target* target;
-#ifdef PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 		Privacy* helper;
 		Privacy* central_authority;
 		Privacy* privacy_target;
@@ -105,6 +108,7 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 		NeighborDiscovery* neighbor_discovery;
 		ShawnOs os_;
 		Radio wiselib_radio_;
+		ReliableRadio reliable_radio_;
 		Timer wiselib_timer_;
 		Debug wiselib_debug_;
 		Rand wiselib_rand_;
@@ -152,7 +156,7 @@ typedef wiselib::PLTT_TargetType<Os, PLTT_Trace, Node, Timer, Radio, Clock, Debu
 		//int tracker_transmission_power;
 		//int tracker_color;
 		//IntensityNumber tracker_target_to_track_max_intensity;
-#ifdef PLTT_SECURE
+#ifdef CONFIG_PLTT_PRIVACY
 		int decryption_request_timer;
 		int decryption_request_offset;
 		int erase_daemon_timer;
