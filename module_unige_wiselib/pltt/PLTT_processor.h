@@ -38,7 +38,7 @@
 
 #define PLTT_MAX_NEIGHBORS_SUPPORTED 400
 #define PLTT_MAX_TARGETS_SUPPORTED 400
-
+#define PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED 400
 using namespace shawn;
 using namespace std;
 
@@ -67,7 +67,7 @@ typedef wiselib::ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> Reliab
 	typedef wiselib::PLTT_PrivacyTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_PrivacyTrace;
 	typedef wiselib::vector_static<Os, PLTT_PrivacyTrace, PLTT_MAX_PRIVACY_TRACES_SUPPORTED> PLTT_PrivacyTraceList;
 	typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
-	typedef wiselib::vector_static<Os, PrivacyMessage, 100> PrivacyMessageList;
+	typedef wiselib::vector_static<Os, PrivacyMessage, PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED> PrivacyMessageList;
 	typedef wiselib::PrivacyType<Os, Radio, Timer, PrivacyMessage, PrivacyMessageList, Debug> Privacy;
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
@@ -108,7 +108,7 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		NeighborDiscovery* neighbor_discovery;
 		ShawnOs os_;
 		Radio wiselib_radio_;
-		ReliableRadio reliable_radio_;
+		ReliableRadio wiselib_reliable_radio_;
 		Timer wiselib_timer_;
 		Debug wiselib_debug_;
 		Rand wiselib_rand_;
