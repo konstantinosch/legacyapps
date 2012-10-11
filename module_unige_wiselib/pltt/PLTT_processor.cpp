@@ -205,7 +205,7 @@ namespace wiselib
 		this->owner_w().set_label(oss.str());
 		passive = new PLTT_Passive();
 		neighbor_discovery = new NeighborDiscovery();
-		neighbor_discovery->set_coords( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() );
+		//neighbor_discovery->set_coords( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() );
 		os_.proc = this;
 		wiselib_reliable_radio_.init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_clock_, wiselib_rand_ );
 		passive->init( wiselib_radio_, wiselib_reliable_radio_, wiselib_timer_, wiselib_debug_, wiselib_rand_, wiselib_clock_, *neighbor_discovery );
@@ -259,7 +259,7 @@ namespace wiselib
 				//wiselib_debug_.debug("----nb-----\n", owner().id() );
 				//wiselib_debug_.debug(" node id %x\n", owner().id() );
 				//p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
-				p->print( wiselib_debug_, wiselib_radio_ );
+				//p->print( wiselib_debug_, wiselib_radio_ );
 				//wiselib_debug_.debug("-----------\n", owner().id() );
 				}
 			}
