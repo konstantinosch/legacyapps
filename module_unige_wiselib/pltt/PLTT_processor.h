@@ -60,30 +60,23 @@ typedef int TimesNumber;
 typedef int SecondsNumber;
 typedef int AgentID;
 typedef wiselib::Position2DType<Os, Radio, CoordinatesNumber, Debug> Position;
-
 typedef wiselib::NodeType<Os, Radio, node_id_t, Position, Debug> Node;
-
 typedef wiselib::NeighborDiscovery_Type<Os, Radio, Clock, Timer, Rand, Debug> NeighborDiscovery;
 typedef wiselib::ReliableRadio_Type<Os, Radio, Clock, Timer, Rand, Debug> ReliableRadio;
-
 #ifdef CONFIG_PLTT_PRIVACY
 	typedef wiselib::PLTT_PrivacyTraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_PrivacyTrace;
-
 	typedef wiselib::vector_static<Os, PLTT_PrivacyTrace, PLTT_MAX_PRIVACY_TRACES_SUPPORTED> PLTT_PrivacyTraceList;
 	typedef wiselib::PrivacyMessageType<Os, Radio> PrivacyMessage;
-
 	typedef wiselib::vector_static<Os, PrivacyMessage, PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED> PrivacyMessageList;
 	typedef wiselib::PrivacyType<Os, Radio, Timer, PrivacyMessage, PrivacyMessageList, Debug> Privacy;
 #endif
 typedef wiselib::PLTT_TraceType<Os, Radio, TimesNumber, SecondsNumber, IntensityNumber, Node, node_id_t, Debug> PLTT_Trace;
-
 typedef wiselib::vector_static<Os, PLTT_Trace, PLTT_MAX_TARGETS_SUPPORTED> PLTT_TraceList;
 typedef wiselib::PLTT_NodeTargetType<Os, Radio, node_id_t, IntensityNumber, Debug > PLTT_NodeTarget;
 typedef wiselib::vector_static<Os, PLTT_NodeTarget, PLTT_MAX_TARGETS_SUPPORTED> PLTT_NodeTargetList;
 typedef wiselib::PLTT_NodeType<Os, Radio, Node, PLTT_NodeTarget, PLTT_NodeTargetList, PLTT_TraceList, Debug> PLTT_Node;
 typedef wiselib::vector_static<Os, PLTT_Node, PLTT_MAX_NEIGHBORS_SUPPORTED> PLTT_NodeList;
 typedef wiselib::PLTT_AgentType< Os, Radio, AgentID, IntensityNumber, Debug> PLTT_Agent;
-
 typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumber, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Tracker;
 #ifdef CONFIG_PLTT_PRIVACY
 	typedef wiselib::PLTT_PassiveType<Os, Node, PLTT_Node, PLTT_NodeList, PLTT_Trace, PLTT_TraceList, PLTT_PrivacyTrace, PLTT_PrivacyTraceList, PLTT_Agent, NeighborDiscovery, Timer, Radio, ReliableRadio, Rand, Clock, Debug> PLTT_Passive;
@@ -104,7 +97,7 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		void receive( int from, long len, unsigned char* data, const ExtendedData& exdata ) throw();
 		void tags_from_traces( void ) throw();
 		void target_waypoint( shawn::Vec );
-		//void tracker_waypoint( shawn::Vec );
+		void tracker_waypoint( shawn::Vec );
 	private:
 		PLTT_Passive* passive;
 		PLTT_Target* target;
@@ -125,26 +118,18 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int target_movement_round_intervals;
 		int tracker_movement_round_intervals;
 		double target_movement_distance_intervals;
-		//double tracker_movement_distance_intervals;
 		millis_t target_spread_milis;
-		//millis_t tracker_spread_milis;
 		int target_transmission_power;
-		//int tracker_transmission_power_as_target;
 		SecondsNumber trace_diminish_seconds;
-		//SecondsNumber tracker_trace_diminish_seconds;
 		IntensityNumber trace_diminish_amount;
 		IntensityNumber tracker_trace_diminish_amount;
 		IntensityNumber trace_start_intensity;
-		//IntensityNumber tracker_trace_start_intensity;
 		IntensityNumber trace_spread_penalty;
-		//IntensityNumber tracker_trace_spread_penalty;
-
 		CoordinatesNumber network_size_x;
 		CoordinatesNumber network_size_y;
 		CoordinatesNumber network_size_z;
 		CoordinatesNumber communication_range;
 		double communication_range_mutator;
-
 		int intensity_detection_threshold;
 		millis_t nb_convergence_time;
 		int backoff_connectivity_weight;
@@ -153,17 +138,19 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int backoff_candidate_list_weight;
 		int transmission_power_db;
 		int random_enable_timer_range;
-		//int reliable_tracking_expiration_time;
-		//int reliable_tracking_recurring_time;
-		//int reliable_tracking_daemon_time;
-		//int tracker_tracking_metrics_timer;
-		//int metrics_timeout;
 		int target_color;
+		//millis_t tracker_spread_milis;
+		//double tracker_movement_distance_intervals;
+		//SecondsNumber tracker_trace_diminish_seconds;
+		//IntensityNumber tracker_trace_start_intensity;
+		//IntensityNumber tracker_trace_spread_penalty;
 		//node_id_t tracker_id_to_track;
 		//double tracker_send_milis;
 		//int tracker_transmission_power;
 		//int tracker_color;
 		//IntensityNumber tracker_target_to_track_max_intensity;
+		//int tracker_tracking_metrics_timer;
+		//int metrics_timeout;
 #ifdef CONFIG_PLTT_PRIVACY
 		int decryption_request_timer;
 		int decryption_request_offset;
