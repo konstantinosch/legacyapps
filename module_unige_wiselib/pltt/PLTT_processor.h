@@ -3,7 +3,7 @@
 #include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
-#define CONFIG_PLTT_PRIVACY
+//#define CONFIG_PLTT_PRIVACY
 
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
@@ -55,7 +55,7 @@ typedef Os::Clock Clock;
 typedef Os::Timer Timer;
 typedef Timer::millis_t millis_t;
 typedef double CoordinatesNumber;
-typedef uint8_t IntensityNumber;
+typedef int IntensityNumber;
 typedef int TimesNumber;
 typedef int SecondsNumber;
 typedef int AgentID;

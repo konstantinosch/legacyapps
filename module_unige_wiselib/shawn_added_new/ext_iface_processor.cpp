@@ -77,11 +77,11 @@ namespace wiselib
 					{
 						ex.set_link_metric( 0xff );
 					}
-					if (from == 498 )
-					{
-						printf( "lm_upper = %d , db_upper = %d\n", lm_upper, db_upper );
-						printf( " %d -> %d - lm : %d : %f : %f\n", from, owner().id(), ex.link_metric(), lm, dist );
-					}
+					//if (from == 498 )
+					//{
+						//printf( "lm_upper = %d , db_upper = %d\n", lm_upper, db_upper );
+						//printf( " %d -> %d - lm : %d : %f : %f\n", from, owner().id(), ex.link_metric(), lm, dist );
+					//}
 					for ( ExtendedReceiverListIterator it = ext_delegates_.begin(); it != ext_delegates_.end(); ++it )
 					{
 						(*it)(from, message->payload_size(), message->payload(), ex);
