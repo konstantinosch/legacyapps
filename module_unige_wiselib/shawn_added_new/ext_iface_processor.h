@@ -47,7 +47,11 @@ namespace wiselib
 
       class ExtendedData{
       public:
-         ExtendedData(){}
+         ExtendedData() :
+         link_metric_ (0),
+         lqi_ (0),
+         rssi_ (0)
+         {}
 
          uint8_t link_metric() const
          { return link_metric_; };
@@ -55,8 +59,24 @@ namespace wiselib
          void set_link_metric( uint8_t lm )
          { link_metric_ = lm; };
 
+         uint8_t get_lqi() const
+         { return lqi_; };
+
+         void set_lqi( uint8_t lqi )
+         { lqi_ = lqi; };
+
+         uint8_t get_rssi() const
+         { return rssi_; };
+
+         void set_rssi( uint8_t rssi )
+         { rssi_ = rssi; };
+
+
+
       private:
          uint8_t link_metric_;
+         uint8_t lqi_;
+         uint8_t rssi_;
       };
       // --------------------------------------------------------------------
       typedef delegate3<void, node_id_t, size_t, block_data_t*> shawn_radio_delegate_t;
