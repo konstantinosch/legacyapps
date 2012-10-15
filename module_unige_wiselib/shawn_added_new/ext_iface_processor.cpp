@@ -64,24 +64,65 @@ namespace wiselib
 					double vrange = owner().world().find_node_by_id(from)->transmission_range();
 					double urange = owner().transmission_range();
 					double g_range = owner().world().communication_model().communication_upper_bound();
-					int db_upper = se.required_int_param( "db_upper");
-					int lm_upper = se.required_int_param( "lm_upper");
-					double lm = 0;
 
-					if ( dist <= g_range*vrange  )
+					int rssi_up = se.required_int_param( "rssi_up");
+					int rssi_low = se.required_int_param( "rssi_low");
+					int lqi_limit_up_ratio = se.required_int_param( "lqi_limit_up_ratio");
+					int lqi_limit_low_ratio = se.required_int_param( "lqi_limit_low_ratio");
+
+					uint8_t rssi = 0;
+					uint8_t lqi = 0;
+
+					double max_dist = g_range*vrange;
+
+					uint8_t dist_offset_up = max_dist * ( lqi_limit_up_ratio / 100 );
+					uint8_t dist_offset_low = max_dist * ( lqi_limit_low_ratio / 100 );
+
+					if ( dist == 0 )
 					{
-						lm = (  lm_upper / ( -1 * db_upper ) ) * dist;
-						ex.set_link_metric( (uint8_t) lm );
+						rssi = rssi_up;
+						if ( dist_offset_low == 0 )
+						{
+							lqi = rssi_up;
+						}
+						else
+						{
+							lqi = rssi_up - rssi_low * ( log10( dist_offset_low ) / log10( max_dist ) );
+						}
+					}
+					else if ( dist <= max_dist  )
+					{
+						rssi = rssi_up - rssi_low * ( log10( dist ) / log10( max_dist ) );
+						if ( dist < dist_offset_low )
+						{
+							lqi = rssi_up - rssi_low * ( log10( dist_offset_low ) / log10( max_dist ) );
+						}
+						else if ( dist > max_dist - dist_offset_up )
+						{
+							lqi = rssi_up - rssi_low * ( log10( max_dist - dist_offset_up ) / log10( max_dist ) );
+						}
+						else
+						{
+							lqi = rssi - rssi_low * ( log10( dist) / log10( max_dist ) );
+						}
 					}
 					else
 					{
-						ex.set_link_metric( 0xff );
+						rssi = rssi_low;
+						if ( dist_offset_up == 0 )
+						{
+							lqi = rssi_up;
+						}
+						else
+						{
+							lqi = rssi_up - rssi_low * ( log10( max_dist - dist_offset_up ) / log10( max_dist ) );
+						}
 					}
-					if (from == 498 )
-					{
-						printf( "lm_upper = %d , db_upper = %d\n", lm_upper, db_upper );
-						printf( " %d -> %d - lm : %d : %f : %f\n", from, owner().id(), ex.link_metric(), lm, dist );
-					}
+
+					ex.set_link_metric( rssi );
+					ex.set_rssi( rssi );
+					ex.set_lqi( lqi );
+
 					for ( ExtendedReceiverListIterator it = ext_delegates_.begin(); it != ext_delegates_.end(); ++it )
 					{
 						(*it)(from, message->payload_size(), message->payload(), ex);
