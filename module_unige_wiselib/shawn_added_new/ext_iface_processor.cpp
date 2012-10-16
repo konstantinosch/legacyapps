@@ -64,65 +64,14 @@ namespace wiselib
 					double vrange = owner().world().find_node_by_id(from)->transmission_range();
 					double urange = owner().transmission_range();
 					double g_range = owner().world().communication_model().communication_upper_bound();
-
 					int rssi_up = se.required_int_param( "rssi_up");
-					int rssi_low = se.required_int_param( "rssi_low");
-					int lqi_limit_up_ratio = se.required_int_param( "lqi_limit_up_ratio");
-					int lqi_limit_low_ratio = se.required_int_param( "lqi_limit_low_ratio");
-
-					uint8_t rssi = 0;
-					uint8_t lqi = 0;
-
+					int rssi_low = rssi_up - se.required_int_param( "rssi_low");
+					int lqi_up = se.required_int_param( "lqi_limit_up_ratio");
+					int lqi_low = se.required_int_param( "lqi_limit_low_ratio");
 					double max_dist = g_range*vrange;
-
-					uint8_t dist_offset_up = max_dist * ( lqi_limit_up_ratio / 100 );
-					uint8_t dist_offset_low = max_dist * ( lqi_limit_low_ratio / 100 );
-
-					if ( dist == 0 )
-					{
-						rssi = rssi_up;
-						if ( dist_offset_low == 0 )
-						{
-							lqi = rssi_up;
-						}
-						else
-						{
-							lqi = rssi_up - rssi_low * ( log10( dist_offset_low ) / log10( max_dist ) );
-						}
-					}
-					else if ( dist <= max_dist  )
-					{
-						rssi = rssi_up - rssi_low * ( log10( dist ) / log10( max_dist ) );
-						if ( dist < dist_offset_low )
-						{
-							lqi = rssi_up - rssi_low * ( log10( dist_offset_low ) / log10( max_dist ) );
-						}
-						else if ( dist > max_dist - dist_offset_up )
-						{
-							lqi = rssi_up - rssi_low * ( log10( max_dist - dist_offset_up ) / log10( max_dist ) );
-						}
-						else
-						{
-							lqi = rssi - rssi_low * ( log10( dist) / log10( max_dist ) );
-						}
-					}
-					else
-					{
-						rssi = rssi_low;
-						if ( dist_offset_up == 0 )
-						{
-							lqi = rssi_up;
-						}
-						else
-						{
-							lqi = rssi_up - rssi_low * ( log10( max_dist - dist_offset_up ) / log10( max_dist ) );
-						}
-					}
-
-					ex.set_link_metric( rssi );
-					ex.set_rssi( rssi );
-					ex.set_lqi( lqi );
-
+					ex.set_link_metric( rssi(dist, max_dist, rssi_up, rssi_low ) );
+					ex.set_rssi( rssi(dist, max_dist, rssi_up, rssi_low ) );
+					ex.set_lqi( lqi(dist, max_dist, rssi_up, rssi_low, lqi_up, lqi_low ) );
 					for ( ExtendedReceiverListIterator it = ext_delegates_.begin(); it != ext_delegates_.end(); ++it )
 					{
 						(*it)(from, message->payload_size(), message->payload(), ex);
@@ -176,6 +125,46 @@ namespace wiselib
       if ( state() == Active && tag && tag->delegate() )
          tag->delegate()( tag->userdata() );
    }
+   // ----------------------------------------------------------------------
+   int
+   ExtIfaceProcessor::
+   rssi(double dist, double max_dist, int rssi_up, int rssi_low )
+   {
+   	int rssi = 0;
+   	if ( dist == 0 )
+   	{
+   		return rssi_up;
+   	}
+   	else if ( dist <= max_dist  )
+   	{
+   		return rssi_up - rssi_low * ( log10( dist ) / log10( max_dist ) );
+   	}
+   	else
+   	{
+   		return rssi_low;
+   	}
+   	return  rssi;
+   };
+   // ----------------------------------------------------------------------
+   int
+   ExtIfaceProcessor::
+   lqi( double dist, double max_dist, int rssi_up, int rssi_low, int lqi_up, int lqi_low )
+   {
+   	double dist_offset_low = max_dist * ( (double)lqi_up / 100 );
+   	double dist_offset_up = max_dist - max_dist * ( (double)lqi_low / 100 );
+   	int lqi = rssi( dist, max_dist, rssi_up, rssi_low );
+   	if ( ( dist_offset_low != 0 ) && ( ( dist < dist_offset_low ) || ( dist == 0 ) ) )
+   	{
+   		return rssi( dist_offset_low, max_dist, rssi_up, rssi_low );
+   	}
+   	else if ( ( dist_offset_up != 0 ) && ( ( dist > dist_offset_up ) || ( dist > max_dist ) ) )
+   	{
+   		return rssi( dist_offset_up, max_dist, rssi_up, rssi_low );
+   	}
+   	return lqi;
+   };
+   // ----------------------------------------------------------------------
+
 
 }
 #endif
