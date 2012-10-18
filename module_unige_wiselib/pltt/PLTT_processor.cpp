@@ -237,7 +237,7 @@ namespace wiselib
 			tags_from_traces();
 			//wiselib_debug_.debug(" time : %f", owner().current_time() );
 			//wiselib_debug_.debug( "nb status %d \n", neighbor_discovery->get_status() );
-			if ( owner().current_time() == 99 )
+			if ( owner().current_time() == 129 )
 			{
 				NeighborDiscovery::Protocol* p;
 				//wiselib_debug_.debug("----tr-----\n", owner().id() );
@@ -251,7 +251,7 @@ namespace wiselib
 				//wiselib_debug_.debug("----nb-----\n", owner().id() );
 				//wiselib_debug_.debug(" node id %x\n", owner().id() );
 				//p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
-				//p->print( wiselib_debug_, wiselib_radio_ );
+				p->print( wiselib_debug_, wiselib_radio_ );
 				//wiselib_debug_.debug("-----------\n", owner().id() );
 				}
 			}
