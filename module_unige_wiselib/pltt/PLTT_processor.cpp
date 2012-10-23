@@ -164,7 +164,6 @@ namespace wiselib
 				owner_w().add_tag(new shawn::DoubleTag( "vis_node_color", (double) target_color ) );
 				oss.str("");
 				oss << "target." << owner().id();
-				//this->owner_w().set_label(oss.str());
 				os_.proc = this;
 #ifndef CONFIG_PLTT_PRIVACY
 				target = new PLTT_Target( PLTT_Trace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0) , target_spread_milis, target_transmission_power );
@@ -194,7 +193,6 @@ namespace wiselib
 		owner_w().add_tag(new shawn::DoubleTag( "vis_node_color", 222 ) );
 		ostringstream oss;
 		oss << "passive." << owner().id();
-		//this->owner_w().set_label(oss.str());
 		passive = new PLTT_Passive();
 		neighbor_discovery = new NeighborDiscovery();
 		//neighbor_discovery->set_coords( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() );
