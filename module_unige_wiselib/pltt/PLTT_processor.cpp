@@ -5,6 +5,8 @@
 #include "sys/node.h"
 #include "sys/taggings/basic_tags.h"
 #include "sys/taggings/node_reference_tag.h"
+#include "sys/communication_model.h"
+#include "math.h"
 
 namespace wiselib
 {
@@ -27,8 +29,6 @@ namespace wiselib
 		network_size_x = se.required_int_param( "network_size_x" );
 		network_size_y = se.required_int_param( "network_size_y" );
 		network_size_z = se.required_int_param( "network_size_z" );
-		communication_range = se.required_int_param( "communication_range" );
-		communication_range_mutator = se.required_double_param( "communication_range_mutator");
 		//***
 
 		//***passive node attributes
@@ -71,13 +71,25 @@ namespace wiselib
 		//***
 
 		//***helper nodes
-		CoordinatesNumber helper_d = 2 * communication_range_mutator * communication_range;
+		double r_ratio_copy = se.required_double_param( "r_ratio_copy" );
+		double beta_copy = se.required_double_param( "beta_copy" );
+		double Px = se.required_double_param( "Px" );
+
+		communication_range = std::pow( 10.0, privacy_power_db / 30.0 ) * owner().world().communication_model().communication_upper_bound();
+		double R_range =  communication_range * ( r_ratio_copy / 100 );
+		CoordinatesNumber helper_d = R_range * pow( ( 2 * ( 1 - Px/100 ) ), 1 / ( 2 * beta_copy ) ); //only compatible with shadow log fade at the moment.
 		CoordinatesNumber helper_step_x = floor( network_size_x / ( helper_d / sqrt( 2 ) ) );
 		CoordinatesNumber helper_step_y = floor( network_size_y / ( helper_d / sqrt( 2 ) ) );
 		CoordinatesNumber helper_step_z = floor( network_size_z / ( helper_d / sqrt( 2 ) ) );
+
+		cout << "r_ratio_copy=" << r_ratio_copy << ", beta_copy=" << beta_copy << ", Px=" << Px <<endl;
+		cout << "communication_range=transm_power * sim_range_upper_bound [" << std::pow(10.0, privacy_power_db / 30.0 ) << " * " << owner().world().communication_model().communication_upper_bound() << "=" << communication_range << "]" << endl;
+		cout << "(distance for Px=" << Px / 100 << ") helper_d=" << helper_d << endl;
+
 		int helper_i = owner().id();
 		if ( helper_i < helper_step_x * helper_step_y ) //picks the first nodes based on their sequential id's that are enough to cover the topology based on the above computations
 		{
+			//cout << "helper grid range : " << helper_d;
 			TagHandle tag_h = owner_w().find_tag_w("helper_tag");
 			shawn::BoolTag *hlpr_tag = dynamic_cast<shawn::BoolTag*>( tag_h.get() );
 			hlpr_tag->set_value( true );
@@ -87,8 +99,8 @@ namespace wiselib
 			CoordinatesNumber helper_coord_y = ( network_size_x / helper_step_x ) / 2 + index_i * ( network_size_x / helper_step_x );
 			CoordinatesNumber helper_coord_x = ( network_size_y / helper_step_y ) / 2 + index_j * ( network_size_y / helper_step_y );
 			CoordinatesNumber helper_coord_z = 0;
-			printf("helper %d - helper_d %f : stepx %f : stepy %f : stepz %f\n", helper_i, helper_d, helper_step_x, helper_step_y, helper_step_z );
-			printf(" coordx : %f, coordy : %f, coordz %f : index_i : %f, index_j : %f\n", helper_coord_x, helper_coord_y, helper_coord_z, index_i, index_j ); //places the helper nodes on a full coverage grid
+			//printf("helper %d - helper_d %f : stepx %f : stepy %f : stepz %f\n", helper_i, helper_d, helper_step_x, helper_step_y, helper_step_z );
+			//printf(" coordx : %f, coordy : %f, coordz %f : index_i : %f, index_j : %f\n", helper_coord_x, helper_coord_y, helper_coord_z, index_i, index_j ); //places the helper nodes on a full coverage grid
 			owner_w().set_real_position( shawn::Vec( helper_coord_x, helper_coord_y, helper_coord_z ) );
 			os_.proc = this;
 			helper = new Privacy();
