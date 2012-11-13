@@ -82,9 +82,9 @@ namespace wiselib
 		CoordinatesNumber helper_step_y = floor( network_size_y / ( helper_d / sqrt( 2 ) ) );
 		CoordinatesNumber helper_step_z = floor( network_size_z / ( helper_d / sqrt( 2 ) ) );
 
-		cout << "r_ratio_copy=" << r_ratio_copy << ", beta_copy=" << beta_copy << ", Px=" << Px <<endl;
-		cout << "communication_range=transm_power * sim_range_upper_bound [" << std::pow(10.0, privacy_power_db / 30.0 ) << " * " << owner().world().communication_model().communication_upper_bound() << "=" << communication_range << "]" << endl;
-		cout << "(distance for Px=" << Px / 100 << ") helper_d=" << helper_d << endl;
+		//cout << "r_ratio_copy=" << r_ratio_copy << ", beta_copy=" << beta_copy << ", Px=" << Px <<endl;
+		//cout << "communication_range=transm_power * sim_range_upper_bound [" << std::pow(10.0, privacy_power_db / 30.0 ) << " * " << owner().world().communication_model().communication_upper_bound() << "=" << communication_range << "]" << endl;
+		//cout << "(distance for Px=" << Px / 100 << ") helper_d=" << helper_d << endl;
 
 		int helper_i = owner().id();
 		if ( helper_i < helper_step_x * helper_step_y ) //picks the first nodes based on their sequential id's that are enough to cover the topology based on the above computations
