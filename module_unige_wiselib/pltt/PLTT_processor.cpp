@@ -40,6 +40,7 @@ namespace wiselib
 		backoff_candidate_list_weight = se.required_int_param( "backoff_candidate_list_weight" );
 		transmission_power_db = se.required_int_param( "transmission_power_db" );
 		random_enable_timer_range = se.required_int_param( "random_enable_timer_range" );
+		inhibition_spread_offset_millis_ratio = se.required_int_param( "inhibition_spread_offset_millis_ratio" );
 		//***
 
 #ifdef CONFIG_PLTT_PRIVACY

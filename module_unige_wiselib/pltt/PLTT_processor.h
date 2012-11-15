@@ -138,6 +138,7 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int backoff_candidate_list_weight;
 		int transmission_power_db;
 		int random_enable_timer_range;
+		int inhibition_spread_offset_millis_ratio;
 		int target_color;
 		//millis_t tracker_spread_milis;
 		//double tracker_movement_distance_intervals;
