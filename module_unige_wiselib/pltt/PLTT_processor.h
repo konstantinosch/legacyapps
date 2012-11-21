@@ -101,6 +101,7 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 	private:
 		PLTT_Passive* passive;
 		PLTT_Target* target;
+		PLTT_Tracker* tracker;
 #ifdef CONFIG_PLTT_PRIVACY
 		Privacy* helper;
 		Privacy* central_authority;
@@ -140,6 +141,8 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int random_enable_timer_range;
 		int inhibition_spread_offset_millis_ratio;
 		int target_color;
+
+
 		//millis_t tracker_spread_milis;
 		//double tracker_movement_distance_intervals;
 		//SecondsNumber tracker_trace_diminish_seconds;
@@ -152,6 +155,8 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		//IntensityNumber tracker_target_to_track_max_intensity;
 		//int tracker_tracking_metrics_timer;
 		//int metrics_timeout;
+
+
 #ifdef CONFIG_PLTT_PRIVACY
 		int decryption_request_timer;
 		int decryption_request_offset;
