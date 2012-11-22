@@ -117,13 +117,12 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		Clock wiselib_clock_;
 		shawn::Vec destination;
 		int target_movement_round_intervals;
-		int tracker_movement_round_intervals;
 		double target_movement_distance_intervals;
 		millis_t target_spread_milis;
 		int target_transmission_power;
+		int tracker_transmission_power;
 		SecondsNumber trace_diminish_seconds;
 		IntensityNumber trace_diminish_amount;
-		IntensityNumber tracker_trace_diminish_amount;
 		IntensityNumber trace_start_intensity;
 		IntensityNumber trace_spread_penalty;
 		CoordinatesNumber network_size_x;
@@ -141,22 +140,8 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int random_enable_timer_range;
 		int inhibition_spread_offset_millis_ratio;
 		int target_color;
-
-
-		//millis_t tracker_spread_milis;
-		//double tracker_movement_distance_intervals;
-		//SecondsNumber tracker_trace_diminish_seconds;
-		//IntensityNumber tracker_trace_start_intensity;
-		//IntensityNumber tracker_trace_spread_penalty;
-		//node_id_t tracker_id_to_track;
-		//double tracker_send_milis;
-		//int tracker_transmission_power;
-		//int tracker_color;
-		//IntensityNumber tracker_target_to_track_max_intensity;
-		//int tracker_tracking_metrics_timer;
-		//int metrics_timeout;
-
-
+		int target_id_to_track;
+		int target_id_to_track_max_intensity;
 #ifdef CONFIG_PLTT_PRIVACY
 		int decryption_request_timer;
 		int decryption_request_offset;
