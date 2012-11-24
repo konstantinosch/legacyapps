@@ -213,8 +213,11 @@ namespace wiselib
 					target_id_to_track = se.required_int_param( oss.str() );
 					oss.str("");
 					oss << "target_id_to_track_max_intensity_" << i;
-					target_id_to_track_max_intensity= se.required_int_param( oss.str() );
-					tracker = new PLTT_Tracker( target_id_to_track, target_id_to_track_max_intensity, tracker_transmission_power );
+					target_id_to_track_max_intensity = se.required_int_param( oss.str() );
+					oss.str("");
+					oss << "init_tracking_millis_" << i;
+					init_tracking_millis = se.required_int_param( oss.str() );
+					tracker = new PLTT_Tracker( target_id_to_track, target_id_to_track_max_intensity, tracker_transmission_power, init_tracking_millis );
 					tracker->init( wiselib_radio_, wiselib_reliable_radio_, wiselib_timer_, wiselib_rand_, wiselib_clock_, wiselib_debug_ );
 					tracker->enable();
 				}
@@ -375,7 +378,7 @@ namespace wiselib
 		for ( PLTT_TraceList::iterator tr_i = ( passive->get_traces())->begin(); tr_i != ( passive->get_traces() )->end(); ++tr_i )
 		{
 			ostringstream oss, oss2, oss3;
-			if ( (tr_i->get_parent().get_id() > 0) && (tr_i->get_intensity()!=0) )
+			if ( (tr_i->get_parent().get_id() > 0) && (tr_i->get_intensity()!=0) && ( tr_i->get_target_id() != 0 ) )
 			{
 				const shawn::SimulationEnvironment& se = owner().world().simulation_controller().environment();
 				oss2.str("");

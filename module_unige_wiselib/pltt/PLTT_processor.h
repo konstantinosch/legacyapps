@@ -142,6 +142,7 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int target_color;
 		int target_id_to_track;
 		int target_id_to_track_max_intensity;
+		millis_t init_tracking_millis;
 #ifdef CONFIG_PLTT_PRIVACY
 		int decryption_request_timer;
 		int decryption_request_offset;
