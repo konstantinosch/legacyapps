@@ -49,7 +49,6 @@ namespace wiselib
 		//***privacy_node attributes
 		decryption_request_timer = se.required_int_param( "decryption_request_timer" );
 		decryption_request_offset = se.required_int_param( "decryption_request_offset" );
-		erase_daemon_timer = se.required_int_param( "erase_daemon_timer" );
 		decryption_max_retries = se.required_int_param( "decryption_max_retries" );
 		helper_color = se.required_int_param( "helper_color" );
 		privacy_power_db = se.required_int_param( "privacy_power_db");
@@ -217,7 +216,17 @@ namespace wiselib
 					oss.str("");
 					oss << "init_tracking_millis_" << i;
 					init_tracking_millis = se.required_int_param( oss.str() );
-					tracker = new PLTT_Tracker( target_id_to_track, target_id_to_track_max_intensity, tracker_transmission_power, init_tracking_millis );
+					oss.str("");
+					oss << "tracker_generate_agent_period_" << i;
+					tracker_generate_agent_period = se.required_int_param( oss.str() );
+					oss.str("");
+					oss << "tracker_generate_agent_period_offset_ratio_" << i;
+					tracker_generate_agent_period_offset_ratio = se.required_int_param( oss.str() );
+					oss.str("");
+					oss << "tracker_mini_run_times_" << i;
+					tracker_mini_run_times = se.required_int_param( oss.str() );
+					tracker = new PLTT_Tracker(	target_id_to_track, target_id_to_track_max_intensity, tracker_transmission_power, init_tracking_millis,
+												tracker_generate_agent_period, tracker_generate_agent_period_offset_ratio, tracker_mini_run_times );
 					tracker->init( wiselib_radio_, wiselib_reliable_radio_, wiselib_timer_, wiselib_rand_, wiselib_clock_, wiselib_debug_ );
 					tracker->enable();
 				}
@@ -252,7 +261,6 @@ namespace wiselib
 		passive->set_decryption_request_timer( decryption_request_timer );
 		passive->set_decryption_request_offset( decryption_request_offset );
 		passive->set_decryption_max_retries( decryption_max_retries );
-		passive->set_erase_daemon_timer( erase_daemon_timer );
 #endif
 		passive->enable();
 		//****
@@ -311,7 +319,7 @@ namespace wiselib
 					destination = shawn::Vec(rand()%(long int)network_size_x, rand()%(long int)network_size_y, 0);
 				}
 			}
-			return;
+			cout << "target_id : " << target->get_self()->get_id() << " [" << target->get_self()->get_position().get_x() << ", " << target->get_self()->get_position().get_y() << "]" << endl;
 		}
 
 		shawn::ConstTagHandle tracker_tag;

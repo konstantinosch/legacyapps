@@ -33,12 +33,12 @@
 #include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy.h"
 #include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy_message.h"
 #include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_privacy_trace.h"
-#define PLTT_MAX_PRIVACY_TRACES_SUPPORTED 25
+#define PLTT_MAX_PRIVACY_TRACES_SUPPORTED 250
 #endif
 
-#define PLTT_MAX_NEIGHBORS_SUPPORTED 25
-#define PLTT_MAX_TARGETS_SUPPORTED 25
-#define PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED 25
+#define PLTT_MAX_NEIGHBORS_SUPPORTED 250
+#define PLTT_MAX_TARGETS_SUPPORTED 250
+#define PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED 250
 using namespace shawn;
 using namespace std;
 
@@ -120,7 +120,6 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		double target_movement_distance_intervals;
 		millis_t target_spread_milis;
 		int target_transmission_power;
-		int tracker_transmission_power;
 		SecondsNumber trace_diminish_seconds;
 		IntensityNumber trace_diminish_amount;
 		IntensityNumber trace_start_intensity;
@@ -140,13 +139,17 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int random_enable_timer_range;
 		int inhibition_spread_offset_millis_ratio;
 		int target_color;
+		int tracker_generate_agent_period;
+		int tracker_generate_agent_period_offset_ratio;
+		int tracker_transmission_power;
+		millis_t init_tracking_millis;
+		int tracker_mini_run_times;
 		int target_id_to_track;
 		int target_id_to_track_max_intensity;
-		millis_t init_tracking_millis;
+
 #ifdef CONFIG_PLTT_PRIVACY
 		int decryption_request_timer;
 		int decryption_request_offset;
-		int erase_daemon_timer;
 		int decryption_max_retries;
 		int helper_color;
 		int privacy_power_db;
