@@ -33,12 +33,12 @@
 #include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy.h"
 #include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy_message.h"
 #include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_privacy_trace.h"
-#define PLTT_MAX_PRIVACY_TRACES_SUPPORTED 250
+#define PLTT_MAX_PRIVACY_TRACES_SUPPORTED 100
 #endif
 
-#define PLTT_MAX_NEIGHBORS_SUPPORTED 250
-#define PLTT_MAX_TARGETS_SUPPORTED 250
-#define PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED 250
+#define PLTT_MAX_NEIGHBORS_SUPPORTED 100
+#define PLTT_MAX_TARGETS_SUPPORTED 100
+#define PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED 100
 using namespace shawn;
 using namespace std;
 
