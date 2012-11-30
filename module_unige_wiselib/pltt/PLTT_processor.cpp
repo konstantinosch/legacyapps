@@ -319,7 +319,7 @@ namespace wiselib
 					destination = shawn::Vec(rand()%(long int)network_size_x, rand()%(long int)network_size_y, 0);
 				}
 			}
-			cout << "target_id : " << target->get_self()->get_id() << " [" << target->get_self()->get_position().get_x() << ", " << target->get_self()->get_position().get_y() << "]" << endl;
+			cout << "target_id : " << target->get_self()->get_id() << " [" << target->get_self()->get_position().get_x() << ", " << target->get_self()->get_position().get_y() << "], range = " << owner().transmission_range() << endl;
 		}
 
 		shawn::ConstTagHandle tracker_tag;
