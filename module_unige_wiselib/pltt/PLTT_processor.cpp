@@ -282,6 +282,7 @@ namespace wiselib
 			tags_from_traces();
 			//wiselib_debug_.debug(" time : %f", owner().current_time() );
 			//wiselib_debug_.debug( "nb status %d \n", neighbor_discovery->get_status() );
+			//cout << "passive_id : " << passive->get_self()->get_node().get_id() << " [" << passive->get_self()->get_node().get_position().get_x() << ", " << passive->get_self()->get_node().get_position().get_y() << "], range = " << owner().transmission_range() << endl;
 			if ( owner().current_time() == 129 )
 			{
 				NeighborDiscovery::Protocol* p;
