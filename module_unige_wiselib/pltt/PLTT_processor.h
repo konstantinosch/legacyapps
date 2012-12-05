@@ -3,7 +3,7 @@
 #include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
-#define CONFIG_PLTT_PRIVACY
+//#define CONFIG_PLTT_PRIVACY
 
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
@@ -33,12 +33,12 @@
 #include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy.h"
 #include "../../../wiselib/wiselib.testing/algorithms/privacy/privacy_message.h"
 #include "../../../wiselib/wiselib.testing/algorithms/tracking/PLTT_privacy_trace.h"
-#define PLTT_MAX_PRIVACY_TRACES_SUPPORTED 100
+#define PLTT_MAX_PRIVACY_TRACES_SUPPORTED 200
 #endif
 
-#define PLTT_MAX_NEIGHBORS_SUPPORTED 100
-#define PLTT_MAX_TARGETS_SUPPORTED 100
-#define PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED 100
+#define PLTT_MAX_NEIGHBORS_SUPPORTED 200
+#define PLTT_MAX_TARGETS_SUPPORTED 200
+#define PLTT_MAX_PRIVACY_MESSAGES_SUPPORTED 250
 using namespace shawn;
 using namespace std;
 
