@@ -320,7 +320,7 @@ namespace wiselib
 					destination = shawn::Vec(rand()%(long int)network_size_x, rand()%(long int)network_size_y, 0);
 				}
 			}
-			cout << "target_id : " << target->get_self()->get_id() << " [" << target->get_self()->get_position().get_x() << ", " << target->get_self()->get_position().get_y() << "], range = " << owner().transmission_range() << endl;
+			//cout << "target_id : " << target->get_self()->get_id() << " [" << target->get_self()->get_position().get_x() << ", " << target->get_self()->get_position().get_y() << "], range = " << owner().transmission_range() << endl;
 		}
 
 		shawn::ConstTagHandle tracker_tag;
@@ -343,15 +343,6 @@ namespace wiselib
 		double y_int = sin( theta ) * target_movement_distance_intervals;
 		owner_w().set_real_position( shawn::Vec( owner().real_position().x() + x_int, owner().real_position().y() + y_int ) );
 		target->get_self()->set_position( Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) );
-	}
-	//-------------------------------------------------------------------------------------------------
-	void PLTT_Processor::tracker_waypoint(shawn::Vec destination)
-	{
-//		double theta = atan2( ( destination.y() - owner().real_position().y()  ) , ( destination.x() - owner().real_position().x() ) );
-//		double x_int = cos( theta ) * tracker_movement_distance_intervals;
-//		double y_int = sin( theta ) * tracker_movement_distance_intervals;
-//		owner_w().set_real_position( shawn::Vec( owner().real_position().x() + x_int, owner().real_position().y() + y_int ) );
-//		//tracker->get_self()->set_position( Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) );
 	}
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::receive( int from, long len, unsigned char* data, const ExtendedData& exdata ) throw()

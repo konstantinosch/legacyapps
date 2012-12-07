@@ -3,7 +3,7 @@
 #include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
-#define CONFIG_PLTT_PRIVACY
+//#define CONFIG_PLTT_PRIVACY
 
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
@@ -97,7 +97,6 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		void receive( int from, long len, unsigned char* data, const ExtendedData& exdata ) throw();
 		void tags_from_traces( void ) throw();
 		void target_waypoint( shawn::Vec );
-		void tracker_waypoint( shawn::Vec );
 	private:
 		PLTT_Passive* passive;
 		PLTT_Target* target;
