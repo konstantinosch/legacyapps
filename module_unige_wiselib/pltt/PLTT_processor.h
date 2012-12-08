@@ -3,7 +3,7 @@
 #include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
-//#define CONFIG_PLTT_PRIVACY
+#define CONFIG_PLTT_PRIVACY
 
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
@@ -118,6 +118,7 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int target_movement_round_intervals;
 		double target_movement_distance_intervals;
 		millis_t target_spread_milis;
+		millis_t target_init_spread_milis;
 		int target_transmission_power;
 		SecondsNumber trace_diminish_seconds;
 		IntensityNumber trace_diminish_amount;

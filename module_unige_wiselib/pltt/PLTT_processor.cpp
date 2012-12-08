@@ -153,6 +153,9 @@ namespace wiselib
 				oss << "target_spread_milis_" << i;
 				target_spread_milis = se.required_int_param( oss.str() );
 				oss.str("");
+				oss << "target_init_spread_milis_" << i;
+				target_init_spread_milis = se.required_int_param( oss.str() );
+				oss.str("");
 				oss << "target_transmission_power_" << i;
 				target_transmission_power = se.required_int_param( oss.str() );
 				oss.str("");
@@ -182,7 +185,7 @@ namespace wiselib
 #ifndef CONFIG_PLTT_PRIVACY
 				target = new PLTT_Target( PLTT_Trace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0) , target_spread_milis, target_transmission_power );
 #else
-				target = new PLTT_Target( PLTT_PrivacyTrace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0 ), target_spread_milis, target_transmission_power );
+				target = new PLTT_Target( PLTT_PrivacyTrace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0 ), target_spread_milis, target_init_spread_milis, target_transmission_power );
 				privacy_target = new Privacy();
 				privacy_target->set_randomization();
 				target->set_request_id( i );
