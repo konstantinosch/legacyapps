@@ -183,7 +183,7 @@ namespace wiselib
 				oss << "target." << owner().id();
 				os_.proc = this;
 #ifndef CONFIG_PLTT_PRIVACY
-				target = new PLTT_Target( PLTT_Trace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0) , target_spread_milis, target_transmission_power );
+				target = new PLTT_Target( PLTT_Trace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0) , target_spread_milis, target_init_spread_milis, target_transmission_power );
 #else
 				target = new PLTT_Target( PLTT_PrivacyTrace( trace_diminish_seconds, trace_diminish_amount, trace_spread_penalty, trace_start_intensity, 0 ), target_spread_milis, target_init_spread_milis, target_transmission_power );
 				privacy_target = new Privacy();
