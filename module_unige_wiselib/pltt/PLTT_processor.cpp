@@ -35,6 +35,7 @@ namespace wiselib
 
 		//***passive node attributes
 		intensity_detection_threshold = se.required_int_param( "intensity_detection_threshold" );
+		intensity_ticks = se.required_int_param( "intensity_ticks" );
 		nb_convergence_time = se.required_int_param( "nb_convergence_time" );
 		backoff_connectivity_weight = se.required_int_param( "backoff_connectivity_weight" );
 		backoff_lqi_weight = se.required_int_param( "backoff_lqi_weight" );
@@ -253,6 +254,7 @@ namespace wiselib
 		neighbor_discovery->init( wiselib_radio_, wiselib_timer_, wiselib_debug_, wiselib_clock_, wiselib_rand_ );
 		passive->set_self( PLTT_Node( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) ) );
 		passive->set_intensity_detection_threshold( intensity_detection_threshold );
+		passive->set_intensity_ticks( intensity_ticks );
 		passive->set_nb_convergence_time( nb_convergence_time );
 		passive->set_backoff_connectivity_weight( backoff_connectivity_weight );
 		passive->set_backoff_lqi_weight( backoff_lqi_weight );
