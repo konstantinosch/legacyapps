@@ -229,8 +229,15 @@ namespace wiselib
 					oss.str("");
 					oss << "tracker_mini_run_times_" << i;
 					tracker_mini_run_times = se.required_int_param( oss.str() );
-					tracker = new PLTT_Tracker(	target_id_to_track, target_id_to_track_max_intensity, tracker_transmission_power, init_tracking_millis,
-												tracker_generate_agent_period, tracker_generate_agent_period_offset_ratio, tracker_mini_run_times );
+					oss.str("");
+					oss << "tracker_agent_daemon_period_" << i;
+					tracker_agent_daemon_period = se.required_int_param( oss.str() );
+					oss.str("");
+					oss << "tracker_agent_list_max_count_" << i;
+					tracker_agent_list_max_count = se.required_int_param( oss.str() );
+					tracker = new PLTT_Tracker(	target_id_to_track, target_id_to_track_max_intensity, tracker_transmission_power,
+												init_tracking_millis,	tracker_generate_agent_period, tracker_generate_agent_period_offset_ratio,
+												tracker_mini_run_times );//, tracker_agent_daemon_period, tracker_agent_list_max_count );
 					tracker->init( wiselib_radio_, wiselib_reliable_radio_, wiselib_timer_, wiselib_rand_, wiselib_clock_, wiselib_debug_ );
 					tracker->enable();
 				}
