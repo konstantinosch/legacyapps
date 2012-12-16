@@ -324,6 +324,7 @@ namespace wiselib
 			//**
 			//TARGET SPECIFIC CODE
 			//**
+			target->set_xy( owner().real_position().x(), owner().real_position().y() );
 			if ( ( (int) ( ((int) owner().current_time() ) % target_movement_round_intervals == 0 ) ) && (owner().current_time() != 0) )
 			{
 				target_waypoint( destination );
