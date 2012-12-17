@@ -330,16 +330,22 @@ namespace wiselib
 			//**
 			//TARGET SPECIFIC CODE
 			//**
-			target->set_xy( owner().real_position().x(), owner().real_position().y() );
-			if ( ( (int) ( ((int) owner().current_time() ) % target_movement_round_intervals == 0 ) ) && (owner().current_time() != 0) )
+			if ( target->get_init_spread_millis() < owner().current_time() * 1000 )
 			{
-				target_waypoint( destination );
-				if ( euclidean_distance( owner().real_position(), destination ) <= target_movement_distance_intervals )
+				//target->get_self().get_position_ref()->set_x();
+				//target->get_self().get_position_ref()->set_y();
+				//set_xy( owner().real_position().x(), owner().real_position().y() );
+				target->set_self( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) );
+				if ( ( (int) ( ((int) owner().current_time() ) % target_movement_round_intervals == 0 ) ) && (owner().current_time() != 0) )
 				{
-					destination = shawn::Vec(rand()%(long int)network_size_x, rand()%(long int)network_size_y, 0);
+					target_waypoint( destination );
+					if ( euclidean_distance( owner().real_position(), destination ) <= target_movement_distance_intervals )
+					{
+						destination = shawn::Vec(rand()%(long int)network_size_x, rand()%(long int)network_size_y, 0);
+					}
 				}
-			}
 			//cout << "target_id : " << target->get_self()->get_id() << " [" << target->get_self()->get_position().get_x() << ", " << target->get_self()->get_position().get_y() << "], range = " << owner().transmission_range() << endl;
+			}
 		}
 
 		shawn::ConstTagHandle tracker_tag;
