@@ -37,6 +37,9 @@ namespace wiselib
 		intensity_detection_threshold = se.required_int_param( "intensity_detection_threshold" );
 		intensity_ticks = se.required_int_param( "intensity_ticks" );
 		nb_convergence_time = se.required_int_param( "nb_convergence_time" );
+		nb_convergence_time_max_counter = se.required_int_param( "nb_convergence_time_max_counter" );
+		nb_connections_high = se.required_int_param( "nb_connections_high" );
+		nb_connections_low = se.required_int_param( "nb_connections_low" );
 		backoff_connectivity_weight = se.required_int_param( "backoff_connectivity_weight" );
 		backoff_lqi_weight = se.required_int_param( "backoff_lqi_weight" );
 		backoff_random_weight = se.required_int_param( "backoff_random_weight" );
@@ -263,6 +266,9 @@ namespace wiselib
 		passive->set_intensity_detection_threshold( intensity_detection_threshold );
 		passive->set_intensity_ticks( intensity_ticks );
 		passive->set_nb_convergence_time( nb_convergence_time );
+		passive->set_nb_convergence_time_max_counter( nb_convergence_time_max_counter );
+		passive->set_nb_connections_high( nb_connections_high );
+		passive->set_nb_connections_low( nb_connections_low );
 		passive->set_backoff_connectivity_weight( backoff_connectivity_weight );
 		passive->set_backoff_lqi_weight( backoff_lqi_weight );
 		passive->set_backoff_random_weight( backoff_random_weight );
