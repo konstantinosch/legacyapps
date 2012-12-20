@@ -11,12 +11,13 @@ j=0
 z=0
 x=0
 y=0
+q=0
 for i in tmp/tmp_CON_*; do
 	avg_c=`awk 'BEGIN { FS=":"; sum=0; } {sum+=$4} END { print sum/NR}' $i`
 	avg_dB=`awk 'BEGIN { FS=":"; sum=0; } {sum+=$6} END { print sum/NR}' $i`
 	stdev_c=`awk 'BEGIN { FS=":";} {sum+=$4; array[NR]=$4} END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
 	stdev_dB=`awk 'BEGIN { FS=":";} {sum+=$6; array[NR]=$6} END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
-	echo $avg_dB":"$stdev_dB":"$avg_c":"$stdev_c >> tmp/tmp_avg_stdev_all.txt
+	echo $x:$avg_dB":"$stdev_dB":"$avg_c":"$stdev_c >> tmp/tmp_avg_stdev_all.txt
 	echo $i":"$j":"$z":"$x:$y
 	echo "set cbrange["$cb_floor":"$cb_ceiling"]" > tmp/CON.p
 	echo "set zrange["$cb_floor":"$cb_ceiling"]" >> tmp/CON.p
@@ -104,5 +105,37 @@ for i in tmp/tmp_CON_*; do
 	fi
 	gnuplot tmp/CON.p
 done
+rm tmp/CON.p
+echo "set datafile separator \":\"" > tmp/CON.p
+echo "set xlabel \"time\"" >> tmp/CON.p
+echo "set ylabel \"connectivity\"" >> tmp/CON.p
+if [ $2 == "eps" ]; then
+	echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/CON.p
+	echo "set output "\"""$nf"/avg_stdev_c.eps\"" >> tmp/CON.p
+	echo "plot 'tmp/tmp_avg_stdev_all.txt' using 1:4 with lines lw 2 lc rgb \"red\" title \"avg connectivity\", \\" >> tmp/CON.p
+	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:5 with lines lw 4 lc rgb \"blue\" title \"stdev connectivity\"" >> tmp/CON.p
+elif [ $2 == "png" ]; then
+	echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/CON.p
+	echo "set output "\"""$nf"/avg_stdev_c.png\"" >> tmp/CON.p
+	echo "plot 'tmp/tmp_avg_stdev_all.txt' using 1:4 with lines lw 2 lc rgb \"red\" title \"avg connectivity\", \\" >> tmp/CON.p
+	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:5 with lines lw 4 lc rgb \"blue\" title \"stdev connectivity\"" >> tmp/CON.p
+fi
+gnuplot tmp/CON.p
+rm tmp/CON.p
+echo "set datafile separator \":\"" > tmp/CON.p
+echo "set xlabel \"time\"" >> tmp/CON.p
+echo "set ylabel \"dB\"" >> tmp/CON.p
+if [ $2 == "eps" ]; then
+	echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/CON.p
+	echo "set output "\"""$nf"/avg_stdev_dB.eps\"" >> tmp/CON.p
+	echo "plot 'tmp/tmp_avg_stdev_all.txt' using 1:2 with lines lw 2 lc rgb \"red\" title \"avg dB\", \\" >> tmp/CON.p
+	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:3 with lines lw 4 lc rgb \"blue\" title \"stdev dB\"" >> tmp/CON.p
+elif [ $2 == "png" ]; then
+	echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/CON.p
+	echo "set output "\"""$nf"/avg_stdev_dB.png\"" >> tmp/CON.p
+	echo "plot 'tmp/tmp_avg_stdev_all.txt' using 1:2 with lines lw 2 lc rgb \"red\" title \"avg dB\", \\" >> tmp/CON.p
+	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:3 with lines lw 4 lc rgb \"blue\" title \"stdev dB\"" >> tmp/CON.p
+fi
+gnuplot tmp/CON.p
 rm -rf tmp
 
