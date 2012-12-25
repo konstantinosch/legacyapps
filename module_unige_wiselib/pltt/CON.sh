@@ -4,7 +4,8 @@ nf=${1%.*}"["$d"-"$t"]"
 mkdir $nf
 mkdir tmp
 cp $1 $nf
-sort -t: -k 2n -k 3n $1 | awk 'BEGIN { FS=":"; } {  for (i=0; i<$8; i++) { if ( ( $1 == "CON" ) && ( $2 == $i ) ) { zeroes = length($8) - length($2); str = ""; if ( zeroes!=0 ) { for (j=0; j<zeroes; j++) { str=str"0" } 	} else { str=""; } print $0 > "tmp/tmp_CON_"str""$i".txt"; print$0 > "tmp/tmp_out_all.txt" } } }'
+#NEIGHBOR DISCOVERY CONVERGENCE STATISTICS
+sort -t: -k 2n -k 3n $1 | awk 'BEGIN { FS=":"; } {  for (i=0; i<$8; i++) { if ( ( $1 == "CON" ) && ( $2 == $i ) ) { zeroes = length($8) - length($2); str = ""; if ( zeroes!=0 ) { for (j=0; j<zeroes; j++) { str=str"0" } } else { str=""; } print $0 > "tmp/tmp_CON_"str""$i".txt"; print$0 > "tmp/tmp_out_all.txt" } } }'
 cb_ceiling=`sort -t: -k 4nr tmp/tmp_out_all.txt | head -n 1 | awk 'BEGIN{FS=":"} ; {print $4}'`
 cb_floor=0
 j=0
@@ -137,5 +138,9 @@ elif [ $2 == "png" ]; then
 	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:3 with lines lw 4 lc rgb \"blue\" title \"stdev dB\"" >> tmp/CON.p
 fi
 gnuplot tmp/CON.p
-rm -rf tmp
+#TRACKING INFORMATION STATISTICS
+sort -t: -k 2n -k 3n $1 | awk 'BEGIN { FS=":"; } { if ( $1 == "TRA" ) { print $0 > "tmp/tmp_TRA_"$6"-"$7".txt" } if ( $1 == "TAR" ) { print $0 > "tmp/tmp_TAR"$2".txt" } }'
+#for i in tmp/tmp_TRAN_*; do
+#done
+#rm -rf tmp
 
