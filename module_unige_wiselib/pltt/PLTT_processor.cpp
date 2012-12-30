@@ -25,12 +25,15 @@ namespace wiselib
 	//-------------------------------------------------------------------------------------------------
 	void PLTT_Processor::boot( void ) throw()
 	{
+		first_time_pos = 0;
+
 		const shawn::SimulationEnvironment& se = owner().world().simulation_controller().environment();
 
 		//***topology attributes
 		network_size_x = se.required_int_param( "network_size_x" );
 		network_size_y = se.required_int_param( "network_size_y" );
 		network_size_z = se.required_int_param( "network_size_z" );
+		if (owner().id() == 0 ) { printf("TOPO:%f:%f:%f\n",network_size_x, network_size_y, network_size_z ); }
 		//***
 
 		//***passive node attributes
@@ -301,14 +304,14 @@ namespace wiselib
 			//wiselib_debug_.debug(" time : %f", owner().current_time() );
 			//wiselib_debug_.debug( "nb status %d \n", neighbor_discovery->get_status() );
 			//cout << "passive_id : " << passive->get_self()->get_node().get_id() << " [" << passive->get_self()->get_node().get_position().get_x() << ", " << passive->get_self()->get_node().get_position().get_y() << "], range = " << owner().transmission_range() << endl;
-			if ( owner().current_time() == 129 )
-			{
+			//if ( owner().current_time() == 129 )
+			//{
 				NeighborDiscovery::Protocol* p;
 				//wiselib_debug_.debug("----tr-----\n", owner().id() );
 				//wiselib_debug_.debug(" node id %x\n", owner().id() );
 				//p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::TRACKING_PROTOCOL_ID );
-				if ( p!= NULL )
-				{
+			//	if ( p!= NULL )
+			//	{
 					//p->print( wiselib_debug_, wiselib_radio_ );
 					//wiselib_debug_.debug("-----------\n", owner().id() );
 					//wiselib_debug_.debug("----vs-----\n", owner().id() );
@@ -317,8 +320,8 @@ namespace wiselib
 					//p = neighbor_discovery->get_protocol_ref( NeighborDiscovery::NB_PROTOCOL_ID );
 					//p->print( wiselib_debug_, wiselib_radio_ );
 					//wiselib_debug_.debug("-----------\n", owner().id() );
-				}
-			}
+			//	}
+			//}
 			return;
 		}
 
@@ -335,6 +338,14 @@ namespace wiselib
 				//target->get_self().get_position_ref()->set_x();
 				//target->get_self().get_position_ref()->set_y();
 				//set_xy( owner().real_position().x(), owner().real_position().y() );
+#ifdef CONFIG_PLTT_PRIVACY
+				if ( ( target->get_has_encrypted_id() == 1 ) && ( first_time_pos == 0 ) )
+				{
+					owner_w().set_real_position( shawn::Vec( rand()%30, rand()%30 ) );
+					target->get_self()->set_position( Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) );
+					first_time_pos = 1;
+				}
+#endif
 				target->set_self( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) );
 				if ( ( (int) ( ((int) owner().current_time() ) % target_movement_round_intervals == 0 ) ) && (owner().current_time() != 0) )
 				{

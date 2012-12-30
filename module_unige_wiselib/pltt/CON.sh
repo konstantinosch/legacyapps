@@ -18,10 +18,14 @@ for i in tmp/tmp_CON_*; do
 	avg_dB=`awk 'BEGIN { FS=":"; sum=0; } {sum+=$6} END { print sum/NR}' $i`
 	stdev_c=`awk 'BEGIN { FS=":";} {sum+=$4; array[NR]=$4} END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
 	stdev_dB=`awk 'BEGIN { FS=":";} {sum+=$6; array[NR]=$6} END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
+	TOPO_x_ceiling=`awk 'BEGIN{FS=":"} ; {if ($1=="TOPO") {print $2}}' $1`
+	TOPO_y_ceiling=`awk 'BEGIN{FS=":"} ; {if ($1=="TOPO") {print $3}}' $1`
 	echo $x:$avg_dB":"$stdev_dB":"$avg_c":"$stdev_c >> tmp/tmp_avg_stdev_all.txt
 	echo $i":"$j":"$z":"$x:$y
 	echo "set cbrange["$cb_floor":"$cb_ceiling"]" > tmp/CON.p
 	echo "set zrange["$cb_floor":"$cb_ceiling"]" >> tmp/CON.p
+	echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/CON.p
+	echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/CON.p
 	echo "set datafile separator \":\"" >> tmp/CON.p
 	echo "set palette rgb 7,5,15" >> tmp/CON.p
 	echo "set view map" >> tmp/CON.p
@@ -44,6 +48,8 @@ for i in tmp/tmp_CON_*; do
 	rm tmp/CON.p
 	echo "set cbrange[0:-30]" > tmp/CON.p
 	echo "set zrange[0:-30]" >> tmp/CON.p
+	echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/CON.p
+	echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/CON.p
 	echo "set datafile separator \":\"" >> tmp/CON.p
 	echo "set palette model XYZ rgbformulae 7,5,15" >> tmp/CON.p
 	echo "set view map" >> tmp/CON.p
@@ -148,6 +154,8 @@ for ii in tmp/tmp_TAR*; do
 	target_id="${s1%%[^[:digit:]]*}" 
 	echo $ii":"$target_id 
 	echo "set datafile separator \":\"" > tmp/TAR.p
+	echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/TAR.p
+	echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/TAR.p
 	echo "set xlabel \"x\"" >> tmp/TAR.p
 	echo "set ylabel \"y\" rotate by 360" >> tmp/TAR.p
 	echo "set title \"target id["$target_id"] movement\"" >> tmp/TAR.p
@@ -176,6 +184,8 @@ for jj in tmp/tmp_TRA*; do
 	tracker_id=${tar_tra_id:($dash_pos)}
 	echo $jj:":"$target_id":"$tracker_id
 	echo "set datafile separator \":\"" > tmp/TRA.p
+	echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/TRA.p
+	echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/TRA.p
 	echo "set xlabel \"x\"" >> tmp/TRA.p
 	echo "set ylabel \"y\" rotate by 360" >> tmp/TRA.p
 	echo "set title \"target id["$target_id"] movement based on reports from tracker id["$tracker_id"] \"" >> tmp/TRA.p
@@ -195,6 +205,10 @@ for jj in tmp/tmp_TRA*; do
 	gnuplot tmp/TRA.p
 done
 
+file1=""
+file2=""
+file3=""
+empty="1"
 for yy in tmp/tmp_TRA*; do
 	str1=${yy:11}	
 	tar_tra_id_pos=`expr index $str1 ".txt"`
@@ -202,84 +216,146 @@ for yy in tmp/tmp_TRA*; do
 	dash_pos=`expr index $tar_tra_id "-"`
 	target_id1=${tar_tra_id::(($dash_pos)-1)}
 	tracker_id1=${tar_tra_id:($dash_pos)}
-	echo "1->"$yy;
+	#echo "1->"$yy;
 	for xx in tmp/tmp_TAR*; do
 		str2=$xx
 		s2="${str2#"${str2%%[[:digit:]]*}"}"
 		target_id2="${s2%%[^[:digit:]]*}" 
 		if [ $target_id2 == $target_id1 ]; then
-			echo "["$target_id1":"$tracker_id1"]";
-			cat $yy $xx | awk 'BEGIN { FS=":";	tar_index=0; tra_index=0; } 
-{ 
-	if ( $1 == "TAR" )
-	{	
-		target_target_id[tar_index]=$2
-		target_trace_start_time[tar_index]=$3
-		target_trace_id[tar_index]=$4
-		target_pos_x[tar_index]=$5
-		target_pos_y[tar_index]=$6
-		#target_transm_dB[tar_index]=$7
-		tar_index = tar_index + 1;
-	}
-	else if ( $1 == "TRA" )
-	{
-		tracker_target_id[tra_index]=$3
-		tracker_tracker_id[tra_index]=$4
-		tracker_agent_counter[tra_index]=$5
-		tracker_agent_start_time[tra_index]=$6
-		tracker_agent_end_time[tra_index]=$7
-		tracker_agent_duration[tra_index]=$8
-		tracker_agent_id[tra_index]=$9
-		tracker_target_max_inten[tra_index]=$10
-		tracker_agent_hop_count[tra_index]=$11
-		tracker_trace_id[tra_index]=$12
-		tracker_detect_pos_x[tra_index]=$13
-		tracker_detect_pos_y[tra_index]=$14
-		#tracker_detect_rssi[tra_index]=$15
-		#tracker_detect_lqi[tra_index]=$16
-		tra_index = tra_index + 1;
-	}
-}
-END {
-	for ( i = 0; i < tra_index; i++ )
-	{
-		tar_tar_index = 0;
-		for ( j = 0; j < tar_index; j++ )
+			#echo "["$target_id1":"$tracker_id1"]";	
+			file2=$xx
+		elif [ $tracker_id1 == $target_id2 ]; then
+			file3=$xx
+		fi	
+		#echo "2->"$xx;
+	done
+file1=$yy
+	if [ "$file1"!="$empty" ] && [ "$file2"!="$empty" ] && [ "$file3"!="$empty" ]; then
+		echo $file1 $file2 $file3
+		cat $file1 $file2 $file3 | awk 'BEGIN { FS=":"; tar_index=0; tra_index=0; dupes=0; } 
+	{ 
+		if ( $1 == "TAR" )
+		{	
+			target_target_id[tar_index]=$2
+			target_trace_start_time[tar_index]=$3
+			target_trace_id[tar_index]=$4
+			target_pos_x[tar_index]=$5
+			target_pos_y[tar_index]=$6
+			#target_transm_dB[tar_index]=$7
+			tar_index = tar_index + 1;
+		}
+		else if ( $1 == "TRA" )
 		{
-			if (tracker_tracker_id[i] == target_target_id[j] )
-			{
-				tracker_pos_x[i] = target_pos_x[j];
-				tracker_pos_y[i] = target_pos_y[j];
-			}
-			else 
-			{
-				tar_tar_index = tar_tar_index + 1;
-				if ( tracker_trace_id[i] == target_trace_id[j] )
-				{
-					tracker_target_pos_x[i]=target_pos_x[j];
-					tracker_target_pos_y[i]=target_pos_y[j];
-					tracker_target_detect_distance[i] = sqrt( ( tracker_detect_pos_x[i] - target_pos_x[j] ) ^ 2 + ( tracker_detect_pos_y[i] - target_pos_y[j] )^2 );
-					tracker_target_distance[i] = sqrt( ( tracker_pos_x[i] - target_pos_x[j] ) ^ 2 + ( tracker_pos_y[i] - target_pos_y[j] )^2 );
-					#tracker_target_transm_dB[i] = target_transm_dB[j];
-				}
-			}
-			#print i":"target_target_id[i]":"target_trace_start_time[i]":"target_trace_id[i]":"target_pos_x[i]":"target_pos_y[i];
+			tracker_target_id[tra_index]=$3
+			tracker_tracker_id[tra_index]=$4
+			tracker_agent_counter[tra_index]=$5
+			tracker_agent_start_time[tra_index]=$6
+			tracker_agent_end_time[tra_index]=$7
+			tracker_agent_duration[tra_index]=$8
+			tracker_agent_id[tra_index]=$9
+			tracker_target_max_inten[tra_index]=$10
+			tracker_agent_hop_count[tra_index]=$11
+			tracker_trace_id[tra_index]=$12
+			tracker_detect_pos_x[tra_index]=$13
+			tracker_detect_pos_y[tra_index]=$14
+			tracker_tracker_trace_id[tra_index]=$15
+			#tracker_detect_rssi[tra_index]=$15
+			#tracker_detect_lqi[tra_index]=$16
+			tra_index = tra_index + 1;	
 		}
 	}
-	for ( i = 0; i < tra_index; i++ )
-	{
-		print i":"tracker_target_id[i]":"tracker_tracker_id[i]":"tracker_agent_counter[i]":"tracker_agent_start_time[i]":"tracker_agent_end_time[i]":"tracker_agent_duration[i]":"tracker_agent_id[i]":"tracker_target_max_inten[i]":"tracker_agent_hop_count[i]":"tracker_trace_id[i]":"tracker_detect_pos_x[i]":"tracker_detect_pos_y[i]":"tracker_target_pos_x[i]":"tracker_target_pos_y[i]":"tracker_pos_x[i]":"tracker_pos_y[i]":"tracker_target_detect_distance[i]":"tracker_target_distance[i];#":"tracker_detect_rssi[i]":"tracker_detect_lqi[i]":"tracker_target_transm_dB[i]
-	}
-	print tra_index":"tar_tar_index":"tar_index
-	success_rate = ( tra_index * 100 ) / tar_tar_index;
-	print "success rate="success_rate"%";
-}'
-		fi
-		echo "2->"$xx;
-	done
+	END {
+		for ( i = 0; i < tra_index; i++ )
+		{
+			tar_tar_index = 0;
+			for ( j = 0; j < tar_index; j++ )
+			{
+				if ( tracker_tracker_id[i] == target_target_id[j] )
+				{
+					if ( tracker_tracker_trace_id[i] == target_trace_id[j] )
+					{
+						tracker_pos_x[i] = target_pos_x[j];
+						tracker_pos_y[i] = target_pos_y[j];
+					}
+				}
+				else 
+				{
+					tar_tar_index = tar_tar_index + 1;
+					if ( tracker_trace_id[i] == target_trace_id[j] )
+					{
+						tracker_target_pos_x[i]=target_pos_x[j];
+						tracker_target_pos_y[i]=target_pos_y[j];
+						tracker_target_detect_distance[i] = sqrt( ( tracker_detect_pos_x[i] - target_pos_x[j] ) ^ 2 + ( tracker_detect_pos_y[i] - target_pos_y[j] )^2 );
+						tracker_target_distance[i] = sqrt( ( tracker_pos_x[i] - target_pos_x[j] ) ^ 2 + ( tracker_pos_y[i] - target_pos_y[j] )^2 );
+						#tracker_target_transm_dB[i] = target_transm_dB[j];
+					}
+				}
+			}
+		}
+		for ( i = 0; i < tra_index; i++ )
+		{
+			if ( ( i > 0 ) && ( tracker_agent_counter[i] == tracker_agent_counter[i-1] ) )
+			{
+				dupes=dupes+1;
+			}
+			else
+			{		
+				print i-dupes":"tracker_target_id[i]":"tracker_tracker_id[i]":"tracker_agent_counter[i]":"tracker_agent_start_time[i]":"tracker_agent_end_time[i]":"tracker_agent_duration[i]":"tracker_agent_id[i]":"tracker_target_max_inten[i]":"tracker_agent_hop_count[i]":"tracker_trace_id[i]":"tracker_tracker_trace_id[i]":"tracker_detect_pos_x[i]":"tracker_detect_pos_y[i]":"tracker_target_pos_x[i]":"tracker_target_pos_y[i]":"tracker_pos_x[i]":"tracker_pos_y[i]":"tracker_target_detect_distance[i]":"tracker_target_distance[i];#":"tracker_detect_rssi[i]":"tracker_detect_lqi[i]":"tracker_target_transm_dB[i] 
+			}
+		}
+	}' > tmp/tmp_TR_full.txt
+		
+		row_sum=`awk '{}END{print FNR}' tmp/tmp_TR_full.txt`
+		echo $row_sum
+		for ((i=1; i<=$((row_sum)); ++i )) ; 
+		do
+			len1=${#row_sum}
+			len2=${#i}
+			len3=$((len1-len2))
+			str11=$i
+			for ((j=0; j<$((len3)); ++j )) ; 
+			do
+				str11="0""$str11"
+			done
+			head -$i "tmp/tmp_TR_full.txt" | tail -1 > "tmp/tmp_TR_row_"$str11"_"$target_id1".txt"
+		done
+		row_num=0
+		for jj in tmp/tmp_TR_row_*; do
+			echo "set datafile separator \":\"" > tmp/TRA_anim.p
+			echo "set size ratio 1" >> tmp/TRA_anim.p
+			echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/TRA_anim.p
+			echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/TRA_anim.p
+			echo "unset key" >> tmp/TRA_anim.p
+			if [ $2 == "eps" ]; then
+				echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >>tmp/TRA_anim.p
+				echo "set output "\"""$nf"/TRA_mov_anim"$target_id1"_"$row_num".eps\"" >> tmp/TRA_anim.p
+				echo "plot '"$jj"' using 13:14 with points pointsize 2 pointtype 7, \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 17:18 with points pointsize 2 pointtype 7" >> tmp/TRA_anim.p
+			elif [ $2 == "png" ]; then
+				echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
+				echo "set output "\"""$nf"/TRA_anim"$target_id1"_"$row_num".png\"" >> tmp/TRA_anim.p
+				echo "plot '"$jj"' using 13:14 with points pointsize 4 pointtype 7, \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 18:17 with points pointsize 4 pointtype 7" >> tmp/TRA_anim.p
+			fi
+			row_num=`expr $row_num + 1`
+			gnuplot tmp/TRA_anim.p
+			rm tmp/TRA_anim.p
+		done
+		#succes_rate=`awk -v all_reports=$all_reports '{}END{print FNR/all_reports}' tmp/tmp_TR_full.txt`
+		#echo "success rate="$succes_rate
+		avg_hop=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$10 } END { print sum/NR }' tmp/tmp_TR_full.txt`
+		stdev_hop=`awk 'BEGIN { FS=":";} {sum+=$10; array[NR]=$10 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
+		echo "average hop number : "$avg_hop
+		echo "stdev hop number: "$stdev_hop
+		avg_detect_dist=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$19  } END { print sum/NR}' tmp/tmp_TR_full.txt`
+		stdev_detect_dist=`awk 'BEGIN { FS=":";} { sum+=$19; array[NR]=$19 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
+		echo "average detect distance: "$avg_detect_dist
+		echo "stdev detect distance: "$stdev_detect_dist
+		#rm tmp/tmp_TR_full.txt
+	fi
 done
 ###############################
 
-#rm -rf $1
+rm -rf $1
 rm -rf tmp
 
