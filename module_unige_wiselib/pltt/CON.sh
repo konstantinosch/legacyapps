@@ -216,7 +216,6 @@ for yy in tmp/tmp_TRA*; do
 	dash_pos=`expr index $tar_tra_id "-"`
 	target_id1=${tar_tra_id::(($dash_pos)-1)}
 	tracker_id1=${tar_tra_id:($dash_pos)}
-	#echo "1->"$yy;
 	for xx in tmp/tmp_TAR*; do
 		str2=$xx
 		s2="${str2#"${str2%%[[:digit:]]*}"}"
@@ -227,7 +226,6 @@ for yy in tmp/tmp_TRA*; do
 		elif [ $tracker_id1 == $target_id2 ]; then
 			file3=$xx
 		fi	
-		#echo "2->"$xx;
 	done
 file1=$yy
 	if [ "$file1"!="$empty" ] && [ "$file2"!="$empty" ] && [ "$file3"!="$empty" ]; then
@@ -246,8 +244,9 @@ file1=$yy
 		}
 		else if ( $1 == "TRA" )
 		{
-			tracker_target_id[tra_index]=$3
-			tracker_tracker_id[tra_index]=$4
+
+			tracker_tracker_id[tra_index]=$3
+			tracker_target_id[tra_index]=$4
 			tracker_agent_counter[tra_index]=$5
 			tracker_agent_start_time[tra_index]=$6
 			tracker_agent_end_time[tra_index]=$7
@@ -280,7 +279,6 @@ file1=$yy
 				}
 				else 
 				{
-					tar_tar_index = tar_tar_index + 1;
 					if ( tracker_trace_id[i] == target_trace_id[j] )
 					{
 						tracker_target_pos_x[i]=target_pos_x[j];
@@ -304,9 +302,8 @@ file1=$yy
 			}
 		}
 	}' > tmp/tmp_TR_full.txt
-		
+		all_reports=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "QTR" ) &&( $2 == id ) ) { i=i+1; } }END{ print i }' $1`
 		row_sum=`awk '{}END{print FNR}' tmp/tmp_TR_full.txt`
-		echo $row_sum
 		for ((i=1; i<=$((row_sum)); ++i )) ; 
 		do
 			len1=${#row_sum}
@@ -317,7 +314,7 @@ file1=$yy
 			do
 				str11="0""$str11"
 			done
-			head -$i "tmp/tmp_TR_full.txt" | tail -1 > "tmp/tmp_TR_row_"$str11"_"$target_id1".txt"
+			head -$i "tmp/tmp_TR_full.txt" | tail -1 > "tmp/tmp_TR_row_"$str11"_"$tracker_id1".txt"
 		done
 		row_num=0
 		for jj in tmp/tmp_TR_row_*; do
@@ -325,24 +322,26 @@ file1=$yy
 			echo "set size ratio 1" >> tmp/TRA_anim.p
 			echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/TRA_anim.p
 			echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/TRA_anim.p
-			echo "unset key" >> tmp/TRA_anim.p
+			echo "set xlabel \"x\"" >> tmp/TRA_anim.p
+			echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
+			echo "set title \"tracker:"$tracker_id1", target:"$target_id1" real vs detected position\"" >> tmp/TRA_anim.p
 			if [ $2 == "eps" ]; then
 				echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >>tmp/TRA_anim.p
-				echo "set output "\"""$nf"/TRA_mov_anim"$target_id1"_"$row_num".eps\"" >> tmp/TRA_anim.p
-				echo "plot '"$jj"' using 13:14 with points pointsize 2 pointtype 7, \\" >> tmp/TRA_anim.p
-				echo " '"$jj"' using 17:18 with points pointsize 2 pointtype 7" >> tmp/TRA_anim.p
+				echo "set output "\"""$nf"/TRA_mov_anim_"$tracker_id1"_"$target_id1"_"$row_num".eps\"" >> tmp/TRA_anim.p
+				echo "plot '"$jj"' using 13:14 with points pointsize 2 pointtype 7 title \"detected position\", \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 15:16 with points pointsize 2 pointtype 7 title \"real position\"">> tmp/TRA_anim.p
 			elif [ $2 == "png" ]; then
 				echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
-				echo "set output "\"""$nf"/TRA_anim"$target_id1"_"$row_num".png\"" >> tmp/TRA_anim.p
-				echo "plot '"$jj"' using 13:14 with points pointsize 4 pointtype 7, \\" >> tmp/TRA_anim.p
-				echo " '"$jj"' using 18:17 with points pointsize 4 pointtype 7" >> tmp/TRA_anim.p
+				echo "set output "\"""$nf"/TRA_mov_anim_"$tracker_id1"_"$target_id1"_"$row_num".png\"" >> tmp/TRA_anim.p
+				echo "plot '"$jj"' using 13:14 with points pointsize 4 pointtype 7 title \"detected position\", \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 15:16 with points pointsize 4 pointtype 7 title \"real position\"" >> tmp/TRA_anim.p
 			fi
 			row_num=`expr $row_num + 1`
 			gnuplot tmp/TRA_anim.p
 			rm tmp/TRA_anim.p
 		done
-		#succes_rate=`awk -v all_reports=$all_reports '{}END{print FNR/all_reports}' tmp/tmp_TR_full.txt`
-		#echo "success rate="$succes_rate
+		success_rate=`echo "($row_sum/$all_reports)*100" | bc -l`
+		echo "success rate="$success_rate
 		avg_hop=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$10 } END { print sum/NR }' tmp/tmp_TR_full.txt`
 		stdev_hop=`awk 'BEGIN { FS=":";} {sum+=$10; array[NR]=$10 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
 		echo "average hop number : "$avg_hop
@@ -351,11 +350,34 @@ file1=$yy
 		stdev_detect_dist=`awk 'BEGIN { FS=":";} { sum+=$19; array[NR]=$19 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
 		echo "average detect distance: "$avg_detect_dist
 		echo "stdev detect distance: "$stdev_detect_dist
-		#rm tmp/tmp_TR_full.txt
+		echo "set datafile separator \":\"" > tmp/TRA_anim.p
+		#echo "set size ratio 1" >> tmp/TRA_anim.p
+		#echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/TRA_anim.p
+		#echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/TRA_anim.p
+		echo "set xlabel \"agent reports\"" >> tmp/TRA_anim.p
+		echo "set ylabel \"distance\"" >> tmp/TRA_anim.p
+		echo "set yrange[0:"$TOPO_y_ceiling"]" >> tmp/TRA_anim.p
+		echo "set title \"tracker:"$tracker_id1", target:"$target_id1" real vs detected position\"" >> tmp/TRA_anim.p
+		#echo "set label 1 \"avg_distance : "$avg_detect_dist"\" at 10, 7.5" >> tmp/CON.p
+		#echo "set label 2 \"stdev distance : "$stdev_detect_dist"\" at 10, 5" >> tmp/CON.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >>tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance"$tracker_id1"_"$target_id1".eps\"" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 1 pointtype 7 title \"real vs detected position distance\"" >> tmp/TRA_anim.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 2 pointtype 7 title \"real vs detected position distance\"" >> tmp/TRA_anim.p
+		fi
+		gnuplot tmp/TRA_anim.p
+		rm tmp/TRA_anim.p
+
+		rm tmp/tmp_TR_full.txt
+		rm tmp/tmp_TR_row_*
 	fi
 done
 ###############################
 
-rm -rf $1
+#rm -rf $1
 rm -rf tmp
 
