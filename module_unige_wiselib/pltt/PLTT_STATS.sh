@@ -2,6 +2,7 @@ d=$(date +"%m-%d-%y")
 t=$(date +"%T")
 nf=${1%.*}"["$d"-"$t"]"
 mkdir $nf
+mkdir $nf/anim
 mkdir tmp
 cp $1 $nf
 #NEIGHBOR DISCOVERY CONVERGENCE
@@ -36,7 +37,7 @@ for i in tmp/tmp_CON_*; do
 	echo "set title \"topology connectivity status\"" >> tmp/CON.p
 	echo "unset key" >> tmp/CON.p
 	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/CON.p
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 		echo "set output "\"""$nf"/CON_c"$((j++))".eps\"" >> tmp/CON.p
 		echo "splot '"$i"' using 9:10:4 with points palette pointsize 2 pointtype 7" >> tmp/CON.p
 	elif [ $2 == "png" ]; then
@@ -60,7 +61,7 @@ for i in tmp/tmp_CON_*; do
 	echo "set title \"transmission power dB status\"" >> tmp/CON.p
 	echo "unset key" >> tmp/CON.p
 	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/CON.p
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 		echo "set output "\"""$nf"/CON_db"$((z++))".eps\"" >> tmp/CON.p
 		echo "splot '"$i"' using 9:10:6 with points palette pointsize 2 pointtype 7" >> tmp/CON.p	
 	elif [ $2 == "png" ]; then 
@@ -75,11 +76,11 @@ for i in tmp/tmp_CON_*; do
 	echo "set xlabel \"node IDs\"" >> tmp/CON.p
 	echo "set ylabel \"connectivity\"" >> tmp/CON.p
 	echo "set title \"connectivity status\"" >> tmp/CON.p
-	echo "set label 1 \"avg connectivity : "$avg_c"\" at 10,"$cb_ceiling+10-2.5 >> tmp/CON.p
-	echo "set label 2 \"stdev connectivity : "$stdev_c"\" at 10,"$cb_ceiling+10-5 >> tmp/CON.p
+	echo "set label 1 \"avg connectivity : "$avg_c"\" at graph  0.02, graph  0.95" >> tmp/CON.p
+	echo "set label 2 \"stdev connectivity : "$stdev_c"\" at graph  0.02, graph  0.90" >> tmp/CON.p
 	echo "avg_c="$avg_c >> tmp/CON.p
 	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/CON.p
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 		echo "set output "\"""$nf"/CON_cs"$((x++))".eps\"" >> tmp/CON.p
 		echo "plot '"$i"' using 3:4 with lines lw 2 lc rgb \"red\" title \"connectivity\", \\" >> tmp/CON.p
 		echo " '"$i"' using 3:(avg_c) with lines lw 4 lc rgb \"blue\" title \"average connectivity\"" >> tmp/CON.p
@@ -96,11 +97,11 @@ for i in tmp/tmp_CON_*; do
 	echo "set xlabel \"node IDs\"" >> tmp/CON.p
 	echo "set ylabel \"transmission dB\"" >> tmp/CON.p
 	echo "set title \"transmission power dB status\"" >> tmp/CON.p
-	echo "set label 1 \"avg dB : "$avg_dB"\" at 10, 7.5" >> tmp/CON.p
-	echo "set label 2 \"stdev dB : "$stdev_dB"\" at 10, 5" >> tmp/CON.p
+	echo "set label 1 \"avg dB : "$avg_dB"\" at graph  0.02, graph  0.95" >> tmp/CON.p
+	echo "set label 2 \"stdev dB : "$stdev_dB"\" at graph  0.02, graph  0.90" >> tmp/CON.p
 	echo "avg_dB="$avg_dB >> tmp/CON.p
 	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/CON.p
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 		echo "set output "\"""$nf"/CON_dbs"$((y++))".eps\"" >> tmp/CON.p
 		echo "plot '"$i"' using 3:6 with lines lw 2 lc rgb \"red\" title \"dB\", \\" >> tmp/CON.p
 		echo " '"$i"' using 3:(avg_dB) with lines lw 4 lc rgb \"blue\" title \"avg dB\"" >> tmp/CON.p
@@ -116,8 +117,9 @@ rm tmp/CON.p
 echo "set datafile separator \":\"" > tmp/CON.p
 echo "set xlabel \"time\"" >> tmp/CON.p
 echo "set ylabel \"connectivity\"" >> tmp/CON.p
+echo "set title \"average topology connectivity convergence\"" >> tmp/CON.p
 if [ $2 == "eps" ]; then
-	echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/CON.p
+	echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 	echo "set output "\"""$nf"/avg_stdev_c.eps\"" >> tmp/CON.p
 	echo "plot 'tmp/tmp_avg_stdev_all.txt' using 1:4 with lines lw 2 lc rgb \"red\" title \"avg connectivity\", \\" >> tmp/CON.p
 	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:5 with lines lw 4 lc rgb \"blue\" title \"stdev connectivity\"" >> tmp/CON.p
@@ -132,8 +134,9 @@ rm tmp/CON.p
 echo "set datafile separator \":\"" > tmp/CON.p
 echo "set xlabel \"time\"" >> tmp/CON.p
 echo "set ylabel \"dB\"" >> tmp/CON.p
+echo "set title \"average transmission dB convergence\"" >> tmp/CON.p
 if [ $2 == "eps" ]; then
-	echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/CON.p
+	echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 	echo "set output "\"""$nf"/avg_stdev_dB.eps\"" >> tmp/CON.p
 	echo "plot 'tmp/tmp_avg_stdev_all.txt' using 1:2 with lines lw 2 lc rgb \"red\" title \"avg dB\", \\" >> tmp/CON.p
 	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:3 with lines lw 4 lc rgb \"blue\" title \"stdev dB\"" >> tmp/CON.p
@@ -162,7 +165,7 @@ for ii in tmp/tmp_TAR*; do
 	echo "set size ratio 1" >> tmp/TAR.p
 	echo "unset key" >> tmp/TAR.p
 	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >> tmp/TAR.p
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/TAR.p
 		echo "set output "\"""$nf"/TAR_mov"$target_id".eps\"" >> tmp/TAR.p
 		echo "plot '"$ii"' using 5:6 with linespoints pointsize 3 pointtype 7, \\" >> tmp/TAR.p
 		echo " '"$ii"' using 5:6:4 with labels font 'Helvetica,10'" >> tmp/TAR.p
@@ -192,7 +195,7 @@ for jj in tmp/tmp_TRA*; do
 	echo "set size ratio 1" >> tmp/TRA.p
 	echo "unset key" >> tmp/TRA.p
 	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >>tmp/TRA.p
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA.p
 		echo "set output "\"""$nf"/TRA_mov"$tar_tra_id".eps\"" >> tmp/TRA.p
 		echo "plot '"$jj"' using 13:14 with linespoints pointsize 3 pointtype 7, \\" >> tmp/TRA.p
 		echo " '"$jj"' using 13:14:5 with labels font 'Helvetica,10'" >> tmp/TRA.p
@@ -239,7 +242,7 @@ file1=$yy
 			target_trace_id[tar_index]=$4
 			target_pos_x[tar_index]=$5
 			target_pos_y[tar_index]=$6
-			#target_transm_dB[tar_index]=$7
+			target_transm_dB[tar_index]=$7
 			tar_index = tar_index + 1;
 		}
 		else if ( $1 == "TRA" )
@@ -285,7 +288,7 @@ file1=$yy
 						tracker_target_pos_y[i]=target_pos_y[j];
 						tracker_target_detect_distance[i] = sqrt( ( tracker_detect_pos_x[i] - target_pos_x[j] ) ^ 2 + ( tracker_detect_pos_y[i] - target_pos_y[j] )^2 );
 						tracker_target_distance[i] = sqrt( ( tracker_pos_x[i] - target_pos_x[j] ) ^ 2 + ( tracker_pos_y[i] - target_pos_y[j] )^2 );
-						#tracker_target_transm_dB[i] = target_transm_dB[j];
+						tracker_target_transm_dB[i] = target_transm_dB[j];
 					}
 				}
 			}
@@ -298,7 +301,7 @@ file1=$yy
 			}
 			else
 			{		
-				print i-dupes":"tracker_target_id[i]":"tracker_tracker_id[i]":"tracker_agent_counter[i]":"tracker_agent_start_time[i]":"tracker_agent_end_time[i]":"tracker_agent_duration[i]":"tracker_agent_id[i]":"tracker_target_max_inten[i]":"tracker_agent_hop_count[i]":"tracker_trace_id[i]":"tracker_tracker_trace_id[i]":"tracker_detect_pos_x[i]":"tracker_detect_pos_y[i]":"tracker_target_pos_x[i]":"tracker_target_pos_y[i]":"tracker_pos_x[i]":"tracker_pos_y[i]":"tracker_target_detect_distance[i]":"tracker_target_distance[i];#":"tracker_detect_rssi[i]":"tracker_detect_lqi[i]":"tracker_target_transm_dB[i] 
+				print i-dupes":"tracker_target_id[i]":"tracker_tracker_id[i]":"tracker_agent_counter[i]":"tracker_agent_start_time[i]":"tracker_agent_end_time[i]":"tracker_agent_duration[i]":"tracker_agent_id[i]":"tracker_target_max_inten[i]":"tracker_agent_hop_count[i]":"tracker_trace_id[i]":"tracker_tracker_trace_id[i]":"tracker_detect_pos_x[i]":"tracker_detect_pos_y[i]":"tracker_target_pos_x[i]":"tracker_target_pos_y[i]":"tracker_pos_x[i]":"tracker_pos_y[i]":"tracker_target_detect_distance[i]":"tracker_target_distance[i]":"tracker_target_transm_dB[i];#":"tracker_detect_rssi[i]":"tracker_detect_lqi[i]
 			}
 		}
 	}' > tmp/tmp_TR_full.txt
@@ -326,13 +329,13 @@ file1=$yy
 			echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
 			echo "set title \"tracker:"$tracker_id1", target:"$target_id1" real vs detected position\"" >> tmp/TRA_anim.p
 			if [ $2 == "eps" ]; then
-				echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >>tmp/TRA_anim.p
-				echo "set output "\"""$nf"/TRA_mov_anim_"$tracker_id1"_"$target_id1"_"$row_num".eps\"" >> tmp/TRA_anim.p
+				echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
+				echo "set output "\"""$nf"/anim/TRA_mov_anim_"$tracker_id1"_"$target_id1"_"$row_num".eps\"" >> tmp/TRA_anim.p
 				echo "plot '"$jj"' using 13:14 with points pointsize 2 pointtype 7 title \"detected position\", \\" >> tmp/TRA_anim.p
 				echo " '"$jj"' using 15:16 with points pointsize 2 pointtype 7 title \"real position\"">> tmp/TRA_anim.p
 			elif [ $2 == "png" ]; then
 				echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
-				echo "set output "\"""$nf"/TRA_mov_anim_"$tracker_id1"_"$target_id1"_"$row_num".png\"" >> tmp/TRA_anim.p
+				echo "set output "\"""$nf"/anim/TRA_mov_anim_"$tracker_id1"_"$target_id1"_"$row_num".png\"" >> tmp/TRA_anim.p
 				echo "plot '"$jj"' using 13:14 with points pointsize 4 pointtype 7 title \"detected position\", \\" >> tmp/TRA_anim.p
 				echo " '"$jj"' using 15:16 with points pointsize 4 pointtype 7 title \"real position\"" >> tmp/TRA_anim.p
 			fi
@@ -340,7 +343,8 @@ file1=$yy
 			gnuplot tmp/TRA_anim.p
 			rm tmp/TRA_anim.p
 		done
-		success_rate=`echo "($row_sum/$all_reports)*100" | bc -l`
+
+		success_rate=`echo "" | awk -v rs=$row_sum -v ar=$all_reports 'END {print (rs/ar)*100}'`
 		echo "success rate="$success_rate
 		avg_hop=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$10 } END { print sum/NR }' tmp/tmp_TR_full.txt`
 		stdev_hop=`awk 'BEGIN { FS=":";} {sum+=$10; array[NR]=$10 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
@@ -350,24 +354,84 @@ file1=$yy
 		stdev_detect_dist=`awk 'BEGIN { FS=":";} { sum+=$19; array[NR]=$19 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
 		echo "average detect distance: "$avg_detect_dist
 		echo "stdev detect distance: "$stdev_detect_dist
+		max_range=`awk 'BEGIN{FS=":"}{ if ($1=="SFM"){ print $2 } }' $1`
+		tar_db=`awk 'BEGIN{FS=":"; db=0;}{ if ($1=="TAR"){ db=$7 } }END{ print db}' $1`
+		com_radius=`echo "" | awk -v mr=$max_range -v tdb=$tar_db 'END {print mr*10^(tdb/30)}'`
+		echo "com_radius="$com_radius
 		echo "set datafile separator \":\"" > tmp/TRA_anim.p
-		#echo "set size ratio 1" >> tmp/TRA_anim.p
-		#echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/TRA_anim.p
-		#echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/TRA_anim.p
+		echo "com_radius="$com_radius >> tmp/TRA_anim.p
+		echo "offset=(com_radius*0.5)" >> tmp/TRA_anim.p
+		echo "set xrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		echo "set yrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		echo "set xlabel \"x\"" >> tmp/TRA_anim.p
+		echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
+		echo "set size ratio 1" >> tmp/TRA_anim.p
+		echo "set label 1 \"avg distance : "$avg_detect_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
+		echo "set label 2 \"stdev distance : "$stdev_detect_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
+		echo "set label 3 \"detect radius at "$tar_db"dB : "$com_radius"\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "set label 4 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.80" >> tmp/TRA_anim.p
+		echo "set title \"tracker_id["$tracker_id1"], target_id["$target_id1"] superimposed detections\"" >> tmp/TRA_anim.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1".eps\"" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"detected position\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\" ">> tmp/TRA_anim.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 2 pointtype 7 lc rgb \"red\" title \"detected position\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 2 pointtype 7 lc rgb \"black\" title \"real position\"">> tmp/TRA_anim.p
+			
+		fi
+		gnuplot tmp/TRA_anim.p
+		rm tmp/TRA_anim.p
+
+		echo "set datafile separator \":\"" > tmp/TRA_anim.p
 		echo "set xlabel \"agent reports\"" >> tmp/TRA_anim.p
 		echo "set ylabel \"distance\"" >> tmp/TRA_anim.p
 		echo "set yrange[0:"$TOPO_y_ceiling"]" >> tmp/TRA_anim.p
-		echo "set title \"tracker:"$tracker_id1", target:"$target_id1" real vs detected position\"" >> tmp/TRA_anim.p
-		#echo "set label 1 \"avg_distance : "$avg_detect_dist"\" at 10, 7.5" >> tmp/CON.p
-		#echo "set label 2 \"stdev distance : "$stdev_detect_dist"\" at 10, 5" >> tmp/CON.p
+		echo "set xrange[0-1:"$all_reports"]" >> tmp/TRA_anim.p
+		echo "set title \"tracker_id["$tracker_id1"], target_id["$target_id1"] real vs detected position\"" >> tmp/TRA_anim.p
+		echo "set label 1 \"avg distance : "$avg_detect_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
+		echo "set label 2 \"stdev distance : "$stdev_detect_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
+		echo "set label 4 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "avg_dd="$avg_detect_dist >> tmp/TRA_anim.p
 		if [ $2 == "eps" ]; then
-			echo "set terminal postscript eps enhanced color font 'Helvetica,16'" >>tmp/TRA_anim.p
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
 			echo "set output "\"""$nf"/TRA_distance"$tracker_id1"_"$target_id1".eps\"" >> tmp/TRA_anim.p
-			echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 1 pointtype 7 title \"real vs detected position distance\"" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 1 pointtype 7 title \"real vs detected position distance\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_dd) with lines lw 4 lc rgb \"blue\" title \"avg distance\"" >> tmp/TRA_anim.p
 		elif [ $2 == "png" ]; then
 			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
 			echo "set output "\"""$nf"/TRA_distance_"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
-			echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 2 pointtype 7 title \"real vs detected position distance\"" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 2 pointtype 7 title \"real vs detected position distance\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_dd) with lines lw 4 lc rgb \"blue\" title \"avg distance\"" >> tmp/TRA_anim.p
+		fi
+		gnuplot tmp/TRA_anim.p
+		rm tmp/TRA_anim.p
+
+		echo "set datafile separator \":\"" > tmp/TRA_anim.p
+		echo "set xlabel \"agent reports\"" >> tmp/TRA_anim.p
+		echo "set ylabel \"hops\"" >> tmp/TRA_anim.p
+		#echo "set yrange[0:"$TOPO_y_ceiling"]" >> tmp/TRA_anim.p
+		echo "set xrange[0-1:"$all_reports"]" >> tmp/TRA_anim.p
+		echo "set title \"tracker_id["$tracker_id1"], target_id["$target_id1"] agent hop count\"" >> tmp/TRA_anim.p
+		echo "set label 1 \"avg hops : "$avg_hop"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
+		echo "set label 2 \"stdev hops : "$stdev_hop"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
+		echo "set label 4 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "avg_h="$avg_hop >> tmp/TRA_anim.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_hops"$tracker_id1"_"$target_id1".eps\"" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using 1:10 with linespoints pointsize 1 pointtype 7 title \"agent hops\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_h) with lines lw 4 lc rgb \"blue\" title \"avg hops\"" >> tmp/TRA_anim.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_hops_"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using 1:10 with linespoints pointsize 2 pointtype 7 title \"agent hops\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_h) with lines lw 4 lc rgb \"blue\" title \"avg hops\"" >> tmp/TRA_anim.p
 		fi
 		gnuplot tmp/TRA_anim.p
 		rm tmp/TRA_anim.p
@@ -378,6 +442,9 @@ file1=$yy
 done
 ###############################
 
-#rm -rf $1
+#MESSAGE STATISTICS
+###############################
+
+rm -rf $1
 rm -rf tmp
 
