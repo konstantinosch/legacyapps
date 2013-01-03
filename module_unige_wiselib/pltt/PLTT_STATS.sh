@@ -1,3 +1,4 @@
+rm -rf tmp
 d=$(date +"%m-%d-%y")
 t=$(date +"%T")
 nf=${1%.*}"["$d"-"$t"]"
@@ -95,7 +96,7 @@ for i in tmp/tmp_CON_*; do
 	echo "set yrange[-40:10]" > tmp/CON.p
 	echo "set datafile separator \":\"" >> tmp/CON.p
 	echo "set xlabel \"node IDs\"" >> tmp/CON.p
-	echo "set ylabel \"transmission dB\"" >> tmp/CON.p
+	echo "set ylabel \"transmission dB\" " >> tmp/CON.p
 	echo "set title \"transmission power dB status\"" >> tmp/CON.p
 	echo "set label 1 \"avg dB : "$avg_dB"\" at graph  0.02, graph  0.95" >> tmp/CON.p
 	echo "set label 2 \"stdev dB : "$stdev_dB"\" at graph  0.02, graph  0.90" >> tmp/CON.p
@@ -133,7 +134,7 @@ gnuplot tmp/CON.p
 rm tmp/CON.p
 echo "set datafile separator \":\"" > tmp/CON.p
 echo "set xlabel \"time\"" >> tmp/CON.p
-echo "set ylabel \"dB\"" >> tmp/CON.p
+echo "set ylabel \"transmission dB\" " >> tmp/CON.p
 echo "set title \"average transmission dB convergence\"" >> tmp/CON.p
 if [ $2 == "eps" ]; then
 	echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
@@ -207,7 +208,9 @@ for jj in tmp/tmp_TRA*; do
 	fi
 	gnuplot tmp/TRA.p
 done
-
+max_range=`awk 'BEGIN{FS=":"}{ if ($1=="SFM"){ print $2 } }' $1`
+tar_db=`awk 'BEGIN{FS=":"; db=0;}{ if ($1=="TAR"){ db=$7 } }END{ print db}' $1`
+com_radius=`echo "" | awk -v mr=$max_range -v tdb=$tar_db 'END {print mr*10^(tdb/30)}'`
 file1=""
 file2=""
 file3=""
@@ -224,7 +227,6 @@ for yy in tmp/tmp_TRA*; do
 		s2="${str2#"${str2%%[[:digit:]]*}"}"
 		target_id2="${s2%%[^[:digit:]]*}" 
 		if [ $target_id2 == $target_id1 ]; then
-			#echo "["$target_id1":"$tracker_id1"]";	
 			file2=$xx
 		elif [ $tracker_id1 == $target_id2 ]; then
 			file3=$xx
@@ -233,7 +235,7 @@ for yy in tmp/tmp_TRA*; do
 file1=$yy
 	if [ "$file1"!="$empty" ] && [ "$file2"!="$empty" ] && [ "$file3"!="$empty" ]; then
 		echo $file1 $file2 $file3
-		cat $file1 $file2 $file3 | awk 'BEGIN { FS=":"; tar_index=0; tra_index=0; dupes=0; } 
+		cat $file1 $file2 $file3 | awk -v cr=$com_radius 'BEGIN { FS=":"; tar_index=0; tra_index=0; dupes=0; } 
 	{ 
 		if ( $1 == "TAR" )
 		{	
@@ -261,8 +263,8 @@ file1=$yy
 			tracker_detect_pos_x[tra_index]=$13
 			tracker_detect_pos_y[tra_index]=$14
 			tracker_tracker_trace_id[tra_index]=$15
-			#tracker_detect_rssi[tra_index]=$15
-			#tracker_detect_lqi[tra_index]=$16
+			tracker_detect_lqi[tra_index]=$16
+			tracker_detect_rssi[tra_index]=$17
 			tra_index = tra_index + 1;	
 		}
 	}
@@ -300,8 +302,12 @@ file1=$yy
 				dupes=dupes+1;
 			}
 			else
-			{		
-				print i-dupes":"tracker_target_id[i]":"tracker_tracker_id[i]":"tracker_agent_counter[i]":"tracker_agent_start_time[i]":"tracker_agent_end_time[i]":"tracker_agent_duration[i]":"tracker_agent_id[i]":"tracker_target_max_inten[i]":"tracker_agent_hop_count[i]":"tracker_trace_id[i]":"tracker_tracker_trace_id[i]":"tracker_detect_pos_x[i]":"tracker_detect_pos_y[i]":"tracker_target_pos_x[i]":"tracker_target_pos_y[i]":"tracker_pos_x[i]":"tracker_pos_y[i]":"tracker_target_detect_distance[i]":"tracker_target_distance[i]":"tracker_target_transm_dB[i];#":"tracker_detect_rssi[i]":"tracker_detect_lqi[i]
+			{
+
+				A = ((255.0 - tracker_detect_rssi[i] )/255.0)*3;
+				B = 10^A;
+				tracker_rssi_distance[i] = ( B * cr ) / 1000;
+				print i-dupes":"tracker_target_id[i]":"tracker_tracker_id[i]":"tracker_agent_counter[i]":"tracker_agent_start_time[i]":"tracker_agent_end_time[i]":"tracker_agent_duration[i]":"tracker_agent_id[i]":"tracker_target_max_inten[i]":"tracker_agent_hop_count[i]":"tracker_trace_id[i]":"tracker_tracker_trace_id[i]":"tracker_detect_pos_x[i]":"tracker_detect_pos_y[i]":"tracker_target_pos_x[i]":"tracker_target_pos_y[i]":"tracker_pos_x[i]":"tracker_pos_y[i]":"tracker_target_detect_distance[i]":"tracker_target_distance[i]":"tracker_target_transm_dB[i]":"tracker_detect_lqi[i]":"tracker_detect_rssi[i]":"tracker_rssi_distance[i]
 			}
 		}
 	}' > tmp/tmp_TR_full.txt
@@ -323,27 +329,31 @@ file1=$yy
 		for jj in tmp/tmp_TR_row_*; do
 			echo "set datafile separator \":\"" > tmp/TRA_anim.p
 			echo "set size ratio 1" >> tmp/TRA_anim.p
+			echo "com_radius="$com_radius >> tmp/TRA_anim.p
 			echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/TRA_anim.p
 			echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/TRA_anim.p
 			echo "set xlabel \"x\"" >> tmp/TRA_anim.p
 			echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
-			echo "set title \"tracker:"$tracker_id1", target:"$target_id1" real vs detected position\"" >> tmp/TRA_anim.p
+			echo "set title \"tracker id["$tracker_id1"], target id["$target_id1"] transmission vs detection area\"" >> tmp/TRA_anim.p
 			if [ $2 == "eps" ]; then
 				echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
 				echo "set output "\"""$nf"/anim/TRA_mov_anim_"$tracker_id1"_"$target_id1"_"$row_num".eps\"" >> tmp/TRA_anim.p
-				echo "plot '"$jj"' using 13:14 with points pointsize 2 pointtype 7 title \"detected position\", \\" >> tmp/TRA_anim.p
-				echo " '"$jj"' using 15:16 with points pointsize 2 pointtype 7 title \"real position\"">> tmp/TRA_anim.p
+				echo " plot '"$jj"' using 15:16:(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"transm radius\", \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 13:14:24 with circles lc rgb \"red\" fs transparent solid 0.15 noborder title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 13:14 with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 15:16 with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\"">> tmp/TRA_anim.p
 			elif [ $2 == "png" ]; then
 				echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
 				echo "set output "\"""$nf"/anim/TRA_mov_anim_"$tracker_id1"_"$target_id1"_"$row_num".png\"" >> tmp/TRA_anim.p
-				echo "plot '"$jj"' using 13:14 with points pointsize 4 pointtype 7 title \"detected position\", \\" >> tmp/TRA_anim.p
-				echo " '"$jj"' using 15:16 with points pointsize 4 pointtype 7 title \"real position\"" >> tmp/TRA_anim.p
+				echo " plot '"$jj"' using 15:16:(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"transm radius\", \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 13:14:24 with circles lc rgb \"red\" fs transparent solid 0.15 noborder title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 13:14 with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+				echo " '"$jj"' using 15:16 with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\"" >> tmp/TRA_anim.p
 			fi
 			row_num=`expr $row_num + 1`
 			gnuplot tmp/TRA_anim.p
 			rm tmp/TRA_anim.p
 		done
-
 		success_rate=`echo "" | awk -v rs=$row_sum -v ar=$all_reports 'END {print (rs/ar)*100}'`
 		echo "success rate="$success_rate
 		avg_hop=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$10 } END { print sum/NR }' tmp/tmp_TR_full.txt`
@@ -352,38 +362,165 @@ file1=$yy
 		echo "stdev hop number: "$stdev_hop
 		avg_detect_dist=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$19  } END { print sum/NR}' tmp/tmp_TR_full.txt`
 		stdev_detect_dist=`awk 'BEGIN { FS=":";} { sum+=$19; array[NR]=$19 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
-		echo "average detect distance: "$avg_detect_dist
-		echo "stdev detect distance: "$stdev_detect_dist
-		max_range=`awk 'BEGIN{FS=":"}{ if ($1=="SFM"){ print $2 } }' $1`
-		tar_db=`awk 'BEGIN{FS=":"; db=0;}{ if ($1=="TAR"){ db=$7 } }END{ print db}' $1`
-		com_radius=`echo "" | awk -v mr=$max_range -v tdb=$tar_db 'END {print mr*10^(tdb/30)}'`
+		avg_detect_rssi_dist=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$24 } END { print sum/NR}' tmp/tmp_TR_full.txt`
+		stdev_detect_rssi_dist=`awk 'BEGIN { FS=":";} { sum+=$24; array[NR]=$24 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
+		echo "average real distance: "$avg_detect_dist
+		echo "stdev real distance: "$stdev_detect_dist
+		echo "average detect rssi distance: "$avg_detect_rssi_dist
+		echo "stdev detect rssi distance: "$stdev_detect_rssi_dist
 		echo "com_radius="$com_radius
 		echo "set datafile separator \":\"" > tmp/TRA_anim.p
 		echo "com_radius="$com_radius >> tmp/TRA_anim.p
 		echo "offset=(com_radius*0.5)" >> tmp/TRA_anim.p
-		echo "set xrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
-		echo "set yrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
-		echo "set xlabel \"x\"" >> tmp/TRA_anim.p
-		echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
+		echo "set xrange[-"$TOPO_x_ceiling"/2:"$TOPO_x_ceiling"/2]" >> tmp/TRA_anim.p
+		echo "set yrange[-"$TOPO_y_ceiling"/2:"$TOPO_y_ceiling"/2]" >> tmp/TRA_anim.p
+		#echo "set xrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		#echo "set yrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		#echo "set xlabel \"x\"" >> tmp/TRA_anim.p
+		#echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
+		echo "unset xtics" >> tmp/TRA_anim.p
+		echo "unset ytics" >> tmp/TRA_anim.p
 		echo "set size ratio 1" >> tmp/TRA_anim.p
-		echo "set label 1 \"avg distance : "$avg_detect_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
-		echo "set label 2 \"stdev distance : "$stdev_detect_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
-		echo "set label 3 \"detect radius at "$tar_db"dB : "$com_radius"\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
-		echo "set label 4 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.80" >> tmp/TRA_anim.p
-		echo "set title \"tracker_id["$tracker_id1"], target_id["$target_id1"] superimposed detections\"" >> tmp/TRA_anim.p
+		#echo "set label 1 \"avg real detect radius : "$avg_detect_dist"\" at graph  0.02, graph  0.97" >> tmp/TRA_anim.p
+		#echo "set label 2 \"stdev real detect radius : "$stdev_detect_dist"\" at graph  0.02, graph  0.94" >> tmp/TRA_anim.p
+		echo "set label 3 \"avg detect rssi radius : "$avg_detect_rssi_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
+		echo "set label 4 \"stdev detect rssi radius : "$stdev_detect_rssi_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
+		echo "set label 5 \"transmission radius at "$tar_db"dB : "$com_radius"\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "set label 6 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.80" >> tmp/TRA_anim.p
+		echo "set title \"tracker id["$tracker_id1"], target id["$target_id1"] superimposed detections\"" >> tmp/TRA_anim.p
 		if [ $2 == "eps" ]; then
 			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
 			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1".eps\"" >> tmp/TRA_anim.p
-			echo "plot 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
-			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"detected position\", \\" >> tmp/TRA_anim.p
+			#echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):(com_radius)  with circles lc rgb \"green\" fs transparent solid 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):24 with circles lc rgb \"red\" fs transparent solid 0.15 noborder title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"transm radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
 			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\" ">> tmp/TRA_anim.p
 		elif [ $2 == "png" ]; then
 			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
 			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
-			echo "plot 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
-			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 2 pointtype 7 lc rgb \"red\" title \"detected position\", \\" >> tmp/TRA_anim.p
-			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 2 pointtype 7 lc rgb \"black\" title \"real position\"">> tmp/TRA_anim.p
-			
+			#echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):(com_radius)  with circles lc rgb \"green\" fs transparent 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):24 with circles lc rgb \"red\" fs transparent solid 0.15 noborder title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"transm radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\"">> tmp/TRA_anim.p
+		fi
+		gnuplot tmp/TRA_anim.p
+		rm tmp/TRA_anim.p
+
+		echo "set datafile separator \":\"" > tmp/TRA_anim.p
+		echo "com_radius="$com_radius >> tmp/TRA_anim.p
+		echo "offset=(com_radius*0.5)" >> tmp/TRA_anim.p
+		echo "set xrange[-"$TOPO_x_ceiling"/2:"$TOPO_x_ceiling"/2]" >> tmp/TRA_anim.p
+		echo "set yrange[-"$TOPO_y_ceiling"/2:"$TOPO_y_ceiling"/2]" >> tmp/TRA_anim.p
+		#echo "set xrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		#echo "set yrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		#echo "set xlabel \"x\"" >> tmp/TRA_anim.p
+		#echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
+		echo "unset xtics" >> tmp/TRA_anim.p
+		echo "unset ytics" >> tmp/TRA_anim.p
+		echo "set size ratio 1" >> tmp/TRA_anim.p
+		#echo "set label 1 \"avg real detect radius : "$avg_detect_dist"\" at graph  0.02, graph  0.97" >> tmp/TRA_anim.p
+		#echo "set label 2 \"stdev real detect radius : "$stdev_detect_dist"\" at graph  0.02, graph  0.94" >> tmp/TRA_anim.p
+		echo "set label 3 \"avg detect rssi radius : "$avg_detect_rssi_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
+		echo "set label 4 \"stdev detect rssi radius : "$stdev_detect_rssi_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
+		echo "set label 5 \"transmission radius at "$tar_db"dB : "$com_radius"\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "set label 6 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.80" >> tmp/TRA_anim.p
+		echo "set title \"tracker id["$tracker_id1"], target id["$target_id1"] superimposed detections\"" >> tmp/TRA_anim.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1"_v2.eps\"" >> tmp/TRA_anim.p
+			#echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):(com_radius)  with circles lc rgb \"green\" fs transparent solid 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"transm radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):24 with circles lc rgb \"red\" title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\" ">> tmp/TRA_anim.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1"_v2.png\"" >> tmp/TRA_anim.p
+			#echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):(com_radius)  with circles lc rgb \"green\" fs transparent 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" fs transparent solid 0.15 noborder title \"transm radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):24 with circles lc rgb \"red\" title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\"">> tmp/TRA_anim.p
+		fi
+		gnuplot tmp/TRA_anim.p
+		rm tmp/TRA_anim.p
+
+		echo "set datafile separator \":\"" > tmp/TRA_anim.p
+		echo "com_radius="$com_radius >> tmp/TRA_anim.p
+		echo "offset=(com_radius*0.5)" >> tmp/TRA_anim.p
+		echo "set xrange[-"$TOPO_x_ceiling"/2:"$TOPO_x_ceiling"/2]" >> tmp/TRA_anim.p
+		echo "set yrange[-"$TOPO_y_ceiling"/2:"$TOPO_y_ceiling"/2]" >> tmp/TRA_anim.p
+		#echo "set xrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		#echo "set yrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		#echo "set xlabel \"x\"" >> tmp/TRA_anim.p
+		#echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
+		echo "unset xtics" >> tmp/TRA_anim.p
+		echo "unset ytics" >> tmp/TRA_anim.p
+		echo "set size ratio 1" >> tmp/TRA_anim.p
+		#echo "set label 1 \"avg real detect radius : "$avg_detect_dist"\" at graph  0.02, graph  0.97" >> tmp/TRA_anim.p
+		#echo "set label 2 \"stdev real detect radius : "$stdev_detect_dist"\" at graph  0.02, graph  0.94" >> tmp/TRA_anim.p
+		echo "set label 3 \"avg detect rssi radius : "$avg_detect_rssi_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
+		echo "set label 4 \"stdev detect rssi radius : "$stdev_detect_rssi_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
+		echo "set label 5 \"transmission radius at "$tar_db"dB : "$com_radius"\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "set label 6 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.80" >> tmp/TRA_anim.p
+		echo "set title \"tracker id["$tracker_id1"], target id["$target_id1"] superimposed detections\"" >> tmp/TRA_anim.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1"_v3.eps\"" >> tmp/TRA_anim.p
+			#echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):(com_radius)  with circles lc rgb \"green\" fs transparent solid 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" title \"transm radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):24 with circles lc rgb \"red\" title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\" ">> tmp/TRA_anim.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1"_v3.png\"" >> tmp/TRA_anim.p
+			#echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):(com_radius)  with circles lc rgb \"green\" fs transparent 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" title \"transm radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):24 with circles lc rgb \"red\" title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\"">> tmp/TRA_anim.p
+		fi
+		gnuplot tmp/TRA_anim.p
+		rm tmp/TRA_anim.p
+
+		echo "set datafile separator \":\"" > tmp/TRA_anim.p
+		echo "com_radius="$com_radius >> tmp/TRA_anim.p
+		echo "offset=(com_radius*0.5)" >> tmp/TRA_anim.p
+		echo "set xrange[-"$TOPO_x_ceiling"/2:"$TOPO_x_ceiling"/2]" >> tmp/TRA_anim.p
+		echo "set yrange[-"$TOPO_y_ceiling"/2:"$TOPO_y_ceiling"/2]" >> tmp/TRA_anim.p
+		#echo "set xrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		#echo "set yrange[-(com_radius+offset):(com_radius+offset)]" >> tmp/TRA_anim.p
+		#echo "set xlabel \"x\"" >> tmp/TRA_anim.p
+		#echo "set ylabel \"y\" rotate by 360" >> tmp/TRA_anim.p
+		echo "unset xtics" >> tmp/TRA_anim.p
+		echo "unset ytics" >> tmp/TRA_anim.p
+		echo "set size ratio 1" >> tmp/TRA_anim.p
+		#echo "set label 1 \"avg real detect radius : "$avg_detect_dist"\" at graph  0.02, graph  0.97" >> tmp/TRA_anim.p
+		#echo "set label 2 \"stdev real detect radius : "$stdev_detect_dist"\" at graph  0.02, graph  0.94" >> tmp/TRA_anim.p
+		echo "set label 3 \"avg detect rssi radius : "$avg_detect_rssi_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
+		echo "set label 4 \"stdev detect rssi radius : "$stdev_detect_rssi_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
+		echo "set label 5 \"transmission radius at "$tar_db"dB : "$com_radius"\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "set label 6 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.80" >> tmp/TRA_anim.p
+		echo "set title \"tracker id["$tracker_id1"], target id["$target_id1"] superimposed detections\"" >> tmp/TRA_anim.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1"_v4.eps\"" >> tmp/TRA_anim.p
+			#echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):(com_radius)  with circles lc rgb \"green\" fs transparent solid 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):24 with circles lc rgb \"red\" fs transparent solid 0.15 noborder title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" title \"transm radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\" ">> tmp/TRA_anim.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
+			echo "set output "\"""$nf"/TRA_distance_superimpose"$tracker_id1"_"$target_id1"_v4.png\"" >> tmp/TRA_anim.p
+			#echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):(com_radius)  with circles lc rgb \"green\" fs transparent 0.15 noborder title \"detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16):24 with circles lc rgb \"red\" fs transparent solid 0.15 noborder title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16):(com_radius) with circles lc rgb \"blue\" title \"transm radius\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""13-""$""15):(""$""14-""$""16) with points pointsize 1 pointtype 7 lc rgb \"red\" title \"position of detection\", \\" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using (""$""15-""$""15):(""$""16-""$""16) with points pointsize 1 pointtype 7 lc rgb \"black\" title \"real position\"">> tmp/TRA_anim.p
 		fi
 		gnuplot tmp/TRA_anim.p
 		rm tmp/TRA_anim.p
@@ -393,21 +530,29 @@ file1=$yy
 		echo "set ylabel \"distance\"" >> tmp/TRA_anim.p
 		echo "set yrange[0:"$TOPO_y_ceiling"]" >> tmp/TRA_anim.p
 		echo "set xrange[0-1:"$all_reports"]" >> tmp/TRA_anim.p
-		echo "set title \"tracker_id["$tracker_id1"], target_id["$target_id1"] real vs detected position\"" >> tmp/TRA_anim.p
-		echo "set label 1 \"avg distance : "$avg_detect_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
-		echo "set label 2 \"stdev distance : "$stdev_detect_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
-		echo "set label 4 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "set title \"tracker id["$tracker_id1"], target id["$target_id1"] agent rssi detection radius\"" >> tmp/TRA_anim.p
+		#echo "set label 1 \"avg real detect radius : "$avg_detect_dist"\" at graph  0.02, graph  0.97" >> tmp/TRA_anim.p
+		#echo "set label 2 \"stdev real detect radius : "$stdev_detect_dist"\" at graph  0.02, graph  0.94" >> tmp/TRA_anim.p
+		echo "set label 3 \"avg detect rssi radius : "$avg_detect_rssi_dist"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
+		echo "set label 4 \"stdev detect rssi radius : "$stdev_detect_rssi_dist"\" at graph  0.02, graph  0.90" >> tmp/TRA_anim.p
+		echo "set label 5 \"transmission radius at "$tar_db"dB : "$com_radius"\" at graph  0.02, graph  0.85" >> tmp/TRA_anim.p
+		echo "set label 6 \"succes rate : "$success_rate"%\" at graph  0.02, graph  0.80" >> tmp/TRA_anim.p
 		echo "avg_dd="$avg_detect_dist >> tmp/TRA_anim.p
+		echo "avg_rssi_dd="$avg_detect_rssi_dist >> tmp/TRA_anim.p
 		if [ $2 == "eps" ]; then
 			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
 			echo "set output "\"""$nf"/TRA_distance"$tracker_id1"_"$target_id1".eps\"" >> tmp/TRA_anim.p
-			echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 1 pointtype 7 title \"real vs detected position distance\", \\" >> tmp/TRA_anim.p
-			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_dd) with lines lw 4 lc rgb \"blue\" title \"avg distance\"" >> tmp/TRA_anim.p
+			#echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 1 pointtype 7 title \"real detect radius\", \\" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using 1:24 with linespoints pointsize 1 pointtype 7 title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			#echo " 'tmp/tmp_TR_full.txt' using 1:(avg_dd) with lines lw 4 lc rgb \"blue\" title \"avg distance\"" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_rssi_dd) with lines lw 4 lc rgb \"blue\" title \"avg detect rssi radius \"" >> tmp/TRA_anim.p
 		elif [ $2 == "png" ]; then
 			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
 			echo "set output "\"""$nf"/TRA_distance_"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
-			echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 2 pointtype 7 title \"real vs detected position distance\", \\" >> tmp/TRA_anim.p
-			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_dd) with lines lw 4 lc rgb \"blue\" title \"avg distance\"" >> tmp/TRA_anim.p
+			#echo "plot 'tmp/tmp_TR_full.txt' using 1:19 with linespoints pointsize 1 pointtype 7 title \"real detect radius\", \\" >> tmp/TRA_anim.p
+			echo " plot 'tmp/tmp_TR_full.txt' using 1:24 with linespoints pointsize 1 pointtype 7 title \"detect rssi radius\", \\" >> tmp/TRA_anim.p
+			#echo " 'tmp/tmp_TR_full.txt' using 1:(avg_dd) with lines lw 4 lc rgb \"blue\" title \"avg distance\"" >> tmp/TRA_anim.p
+			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_rssi_dd) with lines lw 4 lc rgb \"blue\" title \"avg detect rssi radius\"" >> tmp/TRA_anim.p
 		fi
 		gnuplot tmp/TRA_anim.p
 		rm tmp/TRA_anim.p
@@ -415,7 +560,6 @@ file1=$yy
 		echo "set datafile separator \":\"" > tmp/TRA_anim.p
 		echo "set xlabel \"agent reports\"" >> tmp/TRA_anim.p
 		echo "set ylabel \"hops\"" >> tmp/TRA_anim.p
-		#echo "set yrange[0:"$TOPO_y_ceiling"]" >> tmp/TRA_anim.p
 		echo "set xrange[0-1:"$all_reports"]" >> tmp/TRA_anim.p
 		echo "set title \"tracker_id["$tracker_id1"], target_id["$target_id1"] agent hop count\"" >> tmp/TRA_anim.p
 		echo "set label 1 \"avg hops : "$avg_hop"\" at graph  0.02, graph  0.95" >> tmp/TRA_anim.p
@@ -430,12 +574,11 @@ file1=$yy
 		elif [ $2 == "png" ]; then
 			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
 			echo "set output "\"""$nf"/TRA_hops_"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
-			echo "plot 'tmp/tmp_TR_full.txt' using 1:10 with linespoints pointsize 2 pointtype 7 title \"agent hops\", \\" >> tmp/TRA_anim.p
+			echo "plot 'tmp/tmp_TR_full.txt' using 1:10 with linespoints pointsize 1 pointtype 7 title \"agent hops\", \\" >> tmp/TRA_anim.p
 			echo " 'tmp/tmp_TR_full.txt' using 1:(avg_h) with lines lw 4 lc rgb \"blue\" title \"avg hops\"" >> tmp/TRA_anim.p
 		fi
 		gnuplot tmp/TRA_anim.p
 		rm tmp/TRA_anim.p
-
 		rm tmp/tmp_TR_full.txt
 		rm tmp/tmp_TR_row_*
 	fi
@@ -445,6 +588,6 @@ done
 #MESSAGE STATISTICS
 ###############################
 
-rm -rf $1
-rm -rf tmp
+#rm -rf $1
+#rm -rf tmp
 
