@@ -7,7 +7,32 @@ mkdir $nf/anim
 mkdir tmp
 cp $1 $nf
 #NEIGHBOR DISCOVERY CONVERGENCE
-sort -t: -k 2n -k 3n $1 | awk 'BEGIN { FS=":"; } {  for (i=0; i<$8; i++) { if ( ( $1 == "CON" ) && ( $2 == $i ) ) { zeroes = length($8) - length($2); str = ""; if ( zeroes!=0 ) { for (j=0; j<zeroes; j++) { str=str"0" } } else { str=""; } print $0 > "tmp/tmp_CON_"str""$i".txt"; print$0 > "tmp/tmp_out_all.txt" } } }'
+sort -t: -k 2n -k 3n $1 | awk 'BEGIN { FS=":"; } 
+{  
+	if ( ( $1 == "CON" ) )
+	{ 
+		for (i=0; i<$8; i++) 
+		{ 
+			if  ( $2 == $i )
+			{
+				zeroes = length($8) - length($2); str = ""; 
+				if ( zeroes!=0 ) 
+				{ 
+					for (j=0; j<zeroes; j++) 
+					{ 
+						str=str"0" 
+					} 
+				} 
+				else 
+				{ 
+					str=""; 
+				} 
+				print $0 > "tmp/tmp_CON_"str""$i".txt"; 
+				print $0 > "tmp/tmp_out_all.txt" 
+			}
+		} 
+	} 
+}'
 cb_ceiling=`sort -t: -k 4nr tmp/tmp_out_all.txt | head -n 1 | awk 'BEGIN{FS=":"} ; {print $4}'`
 cb_floor=0
 j=0
@@ -184,9 +209,9 @@ for jj in tmp/tmp_TRA*; do
 	tar_tra_id_pos=`expr index $str1 ".txt"`
 	tar_tra_id=${str1::(($tar_tra_id_pos)-1)}
 	dash_pos=`expr index $tar_tra_id "-"`
-	target_id=${tar_tra_id::(($dash_pos)-1)}
-	tracker_id=${tar_tra_id:($dash_pos)}
-	echo $jj:":"$target_id":"$tracker_id
+	tracker_id=${tar_tra_id::(($dash_pos)-1)}
+	target_id=${tar_tra_id:($dash_pos)}
+	echo $jj":"$tracker_id":"$target_id
 	echo "set datafile separator \":\"" > tmp/TRA.p
 	echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/TRA.p
 	echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/TRA.p
@@ -220,8 +245,8 @@ for yy in tmp/tmp_TRA*; do
 	tar_tra_id_pos=`expr index $str1 ".txt"`
 	tar_tra_id=${str1::(($tar_tra_id_pos)-1)}
 	dash_pos=`expr index $tar_tra_id "-"`
-	target_id1=${tar_tra_id::(($dash_pos)-1)}
-	tracker_id1=${tar_tra_id:($dash_pos)}
+	tracker_id1=${tar_tra_id::(($dash_pos)-1)}
+	target_id1=${tar_tra_id:($dash_pos)}
 	for xx in tmp/tmp_TAR*; do
 		str2=$xx
 		s2="${str2#"${str2%%[[:digit:]]*}"}"
@@ -232,6 +257,7 @@ for yy in tmp/tmp_TRA*; do
 			file3=$xx
 		fi	
 	done
+	echo $yy":"$tracker_id1":"$target_id1
 file1=$yy
 	if [ "$file1"!="$empty" ] && [ "$file2"!="$empty" ] && [ "$file3"!="$empty" ]; then
 		echo $file1 $file2 $file3
@@ -297,21 +323,151 @@ file1=$yy
 		}
 		for ( i = 0; i < tra_index; i++ )
 		{
-			if ( ( i > 0 ) && ( tracker_agent_counter[i] == tracker_agent_counter[i-1] ) )
+			if ( ( i > 0 ) && ( tracker_agent_id[i] == tracker_agent_id[i-1] ) )
 			{
 				dupes=dupes+1;
 			}
 			else
 			{
-
 				A = ((255.0 - tracker_detect_rssi[i] )/255.0)*3;
 				B = 10^A;
 				tracker_rssi_distance[i] = ( B * cr ) / 1000;
 				print i-dupes":"tracker_target_id[i]":"tracker_tracker_id[i]":"tracker_agent_counter[i]":"tracker_agent_start_time[i]":"tracker_agent_end_time[i]":"tracker_agent_duration[i]":"tracker_agent_id[i]":"tracker_target_max_inten[i]":"tracker_agent_hop_count[i]":"tracker_trace_id[i]":"tracker_tracker_trace_id[i]":"tracker_detect_pos_x[i]":"tracker_detect_pos_y[i]":"tracker_target_pos_x[i]":"tracker_target_pos_y[i]":"tracker_pos_x[i]":"tracker_pos_y[i]":"tracker_target_detect_distance[i]":"tracker_target_distance[i]":"tracker_target_transm_dB[i]":"tracker_detect_lqi[i]":"tracker_detect_rssi[i]":"tracker_rssi_distance[i]
 			}
 		}
-	}' > tmp/tmp_TR_full.txt
+	}' > tmp/tmp_TR_full.txt #all reports reaching tracker
 		all_reports=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "QTR" ) &&( $2 == id ) ) { i=i+1; } }END{ print i }' $1`
+######
+		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "QTR" ) &&( $2 == id ) ) { print $0} }' $1 > tmp/tmp_REP_init.txt #all reports generated from tracker
+		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "RTR" ) &&( $3 == id ) ) { print "RTR:"$5} }' $1 > tmp/tmp_RTR.txt #pre_hop_report comm range filter
+		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "LMQ" ) &&( $7 == id ) ) { print "LMQ:"$5} }' $1 > tmp/tmp_LMQ.txt #hop count limit on query
+		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "LMR" ) &&( $3 == id ) ) { print "LMR:"$5} }' $1 > tmp/tmp_LMR.txt #hop count limit on reports
+
+		cat tmp/tmp_REP_init.txt tmp/tmp_TR_full.txt | awk 'BEGIN{ FS=":"; tra_index=0; q_index=0; }
+		{
+		}
+		END{}'
+
+		cat tmp/tmp_REP_init.txt tmp/tmp_TR_full.txt | awk 'BEGIN{ FS=":"; tra_index=0; q_index=0; }
+		{ 
+			if ($1 == "QTR")
+			{ 
+				q_id[q_index]=$4; 
+				q_index = q_index + 1; 
+			}
+			else
+			{ 
+				tracker_agent_id[tra_index]=$8; 
+				tra_index = tra_index + 1; 
+			} 
+		}
+		END{ 
+			for (j=0; j< q_index; j++)
+			{
+				found=0;
+				for (i=0; i<tra_index; i++)
+				{
+					if ( tracker_agent_id[i] == q_id[j] )
+					{
+						#print i":"tracker_agent_id[i]"="q_id[j]
+						found=1;
+					}
+				}
+				if ( found == 0 )
+				{
+					print "RNF:"j":"q_id[j]":not found!"
+				}
+			}
+		
+		}' > tmp/tmp_REP_not_found.txt
+
+		cat tmp/tmp_RTR.txt tmp/tmp_TR_full.txt | awk 'BEGIN{ FS=":"; tra_index=0; rtr_index=0; }
+		{ 
+			if ($1 == "RTR")
+			{ 
+				rtr_id[rtr_index]=$2; 
+				rtr_index = rtr_index + 1; 
+			}
+			else
+			{ 
+				tracker_agent_id[tra_index]=$8; 
+				tra_index = tra_index + 1; 
+			} 
+		}
+		END{ 
+			for (j=0; j< rtr_index; j++)
+			{
+				found=0;
+				for (i=0; i<tra_index; i++)
+				{
+					if ( tracker_agent_id[i] == rtr_id[j] )
+					{
+						found=1;
+					}
+				}
+				if ( found == 0 )
+				{
+					print "RTR:"j":"rtr_id[j]":not found!"
+				}
+			}
+		
+		}' > tmp/tmp_RTR_not_found.txt
+
+		cat tmp/tmp_REP_not_found.txt tmp/tmp_RTR_not_found.txt tmp/tmp_LMQ.txt tmp/tmp_LMR.txt | awk 'BEGIN{ FS=":"; m_index=0; k_index=0; }
+		{ 
+			if ( $1 == "RTR" )
+			{ 
+				m[m_index]=$3; 
+				m_index = m_index + 1; 
+			}
+			else if ( $1 == "LMR" )
+			{
+				m[m_index]=$2
+				m_index = m_index + 1;
+			}
+			else if ( $1 == "LMQ" )
+			{
+				m[m_index]=$2
+				m_index = m_index + 1;
+			}
+			else if ( $1 == "RNF" )
+			{ 
+				k[k_index]=$3; 
+				k_index = k_index + 1; 
+			} 
+		}
+		END{
+
+			#print "@@@@ m:"m_index
+			#for ( i=0; i<m_index; i++)
+			#{
+			#	print "m:"m[i]
+			#}
+			#print "@@@@ k:"k_index
+			#for ( i=0; i<k_index; i++)
+			#{
+			#	print "k:"k[i]
+			#}
+			for (j=0; j< k_index; j++)
+			{
+				found=0;
+				for (i=0; i<m_index; i++)
+				{
+					if ( m[i] == k[j] )
+					{
+						found=1;
+					}
+				}
+				if ( found == 0 )
+				{
+					print "UN:"j":"k[j]
+				}
+			}
+		
+		}'
+		
+#filter more
+####
 		row_sum=`awk '{}END{print FNR}' tmp/tmp_TR_full.txt`
 		for ((i=1; i<=$((row_sum)); ++i )) ; 
 		do
@@ -355,6 +511,15 @@ file1=$yy
 			rm tmp/TRA_anim.p
 		done
 		success_rate=`echo "" | awk -v rs=$row_sum -v ar=$all_reports 'END {print (rs/ar)*100}'`
+		reports_missed_zero_echoes=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "XTR" ) &&( $2 == id ) ) { i=i+1; } }END{ print i }' $1`
+		pre_report_hop=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "RTR" ) &&( $3 == id ) ) { i=i+1; } }END{ print i }' $1`
+		reports_missed_out_of_range=`expr $pre_report_hop - $row_sum`
+		echo "all reports="$all_reports
+		echo "all successfull reports="$row_sum
+		echo "reports missed [due to zero echoes]="$reports_missed_zero_echoes
+		echo "reports missed [out of comm range]="$reports_missed_out_of_range
+		#echo "reports missed [exceeded hop count limit(R)]="$reports_missed_hop_count_lim_R
+		#echo "reports missed [exceeded hop count limit(Q)]="$reports_missed_hop_count_lim_Q
 		echo "success rate="$success_rate
 		avg_hop=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$10 } END { print sum/NR }' tmp/tmp_TR_full.txt`
 		stdev_hop=`awk 'BEGIN { FS=":";} {sum+=$10; array[NR]=$10 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
@@ -579,7 +744,7 @@ file1=$yy
 		fi
 		gnuplot tmp/TRA_anim.p
 		rm tmp/TRA_anim.p
-		rm tmp/tmp_TR_full.txt
+		#rm tmp/tmp_TR_full.txt
 		rm tmp/tmp_TR_row_*
 	fi
 done
