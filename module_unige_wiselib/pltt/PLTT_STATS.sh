@@ -522,13 +522,13 @@ file1=$yy
 		#echo "reports missed [exceeded hop count limit(Q)]="$reports_missed_hop_count_lim_Q
 		echo "success rate="$success_rate
 		avg_hop=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$10 } END { print sum/NR }' tmp/tmp_TR_full.txt`
-		stdev_hop=`awk 'BEGIN { FS=":";} {sum+=$10; array[NR]=$10 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
+		stdev_hop=`awk 'BEGIN { FS=":";} {sum+=$10; array[NR]=$10 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
 		echo "average hop number : "$avg_hop
 		echo "stdev hop number: "$stdev_hop
 		avg_detect_dist=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$19  } END { print sum/NR}' tmp/tmp_TR_full.txt`
-		stdev_detect_dist=`awk 'BEGIN { FS=":";} { sum+=$19; array[NR]=$19 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
+		stdev_detect_dist=`awk 'BEGIN { FS=":";} { sum+=$19; array[NR]=$19 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
 		avg_detect_rssi_dist=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$24 } END { print sum/NR}' tmp/tmp_TR_full.txt`
-		stdev_detect_rssi_dist=`awk 'BEGIN { FS=":";} { sum+=$24; array[NR]=$24 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
+		stdev_detect_rssi_dist=`awk 'BEGIN { FS=":";} { sum+=$24; array[NR]=$24 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
 		echo "average real distance: "$avg_detect_dist
 		echo "stdev real distance: "$stdev_detect_dist
 		echo "average detect rssi distance: "$avg_detect_rssi_dist
