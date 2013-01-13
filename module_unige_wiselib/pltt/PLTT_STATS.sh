@@ -341,7 +341,7 @@ file1=$yy
 		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "QTR" ) &&( $2 == id ) ) { print $0} }' $1 > tmp/tmp_REP_init.txt #all reports generated from tracker
 		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "RTR" ) &&( $3 == id ) ) { print "RTR:"$5} }' $1 > tmp/tmp_RTR.txt #pre_hop_report comm range filter
 		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "LMQ" ) &&( $7 == id ) ) { print "LMQ:"$5} }' $1 > tmp/tmp_LMQ.txt #hop count limit on query
-		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "LMR" ) &&( $3 == id ) ) { print "LMR:"$5} }' $1 > tmp/tmp_LMR.txt #hop count limit on reports
+		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "LMR" ) &&( $7 == id ) ) { print "LMR:"$5} }' $1 > tmp/tmp_LMR.txt #hop count limit on reports
 
 		cat tmp/tmp_REP_init.txt tmp/tmp_TR_full.txt | awk 'BEGIN{ FS=":"; tra_index=0; q_index=0; }
 		{
@@ -513,13 +513,15 @@ file1=$yy
 		success_rate=`echo "" | awk -v rs=$row_sum -v ar=$all_reports 'END {print (rs/ar)*100}'`
 		reports_missed_zero_echoes=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "XTR" ) &&( $2 == id ) ) { i=i+1; } }END{ print i }' $1`
 		pre_report_hop=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "RTR" ) &&( $3 == id ) ) { i=i+1; } }END{ print i }' $1`
+		reports_missed_hop_count_lim_Q=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "LMQ" ) && ( $7 == id )  ) { i=i+1; } }END{ print i }' $1`
+		reports_missed_hop_count_lim_R=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "LMR" ) && ( $7 == id )  ) { i=i+1; } }END{ print i }' $1`
 		reports_missed_out_of_range=`expr $pre_report_hop - $row_sum`
 		echo "all reports="$all_reports
 		echo "all successfull reports="$row_sum
 		echo "reports missed [due to zero echoes]="$reports_missed_zero_echoes
 		echo "reports missed [out of comm range]="$reports_missed_out_of_range
-		#echo "reports missed [exceeded hop count limit(R)]="$reports_missed_hop_count_lim_R
-		#echo "reports missed [exceeded hop count limit(Q)]="$reports_missed_hop_count_lim_Q
+		echo "reports missed [exceeded hop count limit(R)]="$reports_missed_hop_count_lim_R
+		echo "reports missed [exceeded hop count limit(Q)]="$reports_missed_hop_count_lim_Q
 		echo "success rate="$success_rate
 		avg_hop=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$10 } END { print sum/NR }' tmp/tmp_TR_full.txt`
 		stdev_hop=`awk 'BEGIN { FS=":";} {sum+=$10; array[NR]=$10 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
