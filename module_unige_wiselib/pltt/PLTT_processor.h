@@ -153,6 +153,7 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int target_id_to_track_max_intensity;
 		int tracker_agent_daemon_period;
 		int tracker_agent_list_max_count;
+		int agent_hop_count_limit;
 #ifdef CONFIG_PLTT_PRIVACY
 		int decryption_request_timer;
 		int decryption_request_offset;

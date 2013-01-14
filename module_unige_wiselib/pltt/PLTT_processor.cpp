@@ -50,6 +50,7 @@ namespace wiselib
 		transmission_power_db = se.required_int_param( "transmission_power_db" );
 		random_enable_timer_range = se.required_int_param( "random_enable_timer_range" );
 		inhibition_spread_offset_millis_ratio = se.required_int_param( "inhibition_spread_offset_millis_ratio" );
+		agent_hop_count_limit = se.required_int_param( "agent_hop_count_limit" );
 		//***
 
 #ifdef CONFIG_PLTT_PRIVACY
@@ -282,6 +283,7 @@ namespace wiselib
 		passive->set_decryption_request_timer( decryption_request_timer );
 		passive->set_decryption_request_offset( decryption_request_offset );
 		passive->set_decryption_max_retries( decryption_max_retries );
+		passive->set_agent_hop_count_limit( agent_hop_count_limit );
 #endif
 		passive->enable();
 		//****
@@ -338,14 +340,14 @@ namespace wiselib
 				//target->get_self().get_position_ref()->set_x();
 				//target->get_self().get_position_ref()->set_y();
 				//set_xy( owner().real_position().x(), owner().real_position().y() );
-#ifdef CONFIG_PLTT_PRIVACY
-				if ( ( target->get_has_encrypted_id() == 1 ) && ( first_time_pos == 0 ) )
-				{
-					owner_w().set_real_position( shawn::Vec( rand()%30, rand()%30 ) );
-					target->get_self()->set_position( Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) );
-					first_time_pos = 1;
-				}
-#endif
+//#ifdef CONFIG_PLTT_PRIVACY
+//				if ( ( target->get_has_encrypted_id() == 1 ) && ( first_time_pos == 0 ) )
+//				{
+//					owner_w().set_real_position( shawn::Vec( rand()%30, rand()%30 ) );
+//					target->get_self()->set_position( Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) );
+//					first_time_pos = 1;
+//				}
+//#endif
 				target->set_self( Node( wiselib_radio_.id(), Position( owner().real_position().x(), owner().real_position().y(), owner().real_position().z() ) ) );
 				if ( ( (int) ( ((int) owner().current_time() ) % target_movement_round_intervals == 0 ) ) && (owner().current_time() != 0) )
 				{
