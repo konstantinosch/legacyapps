@@ -755,6 +755,6 @@ done
 #MESSAGE STATISTICS
 ###############################
 
-#rm -rf $1
-#rm -rf tmp
+rm -rf $1
+rm -rf tmp
 
