@@ -51,6 +51,7 @@ namespace wiselib
 		random_enable_timer_range = se.required_int_param( "random_enable_timer_range" );
 		inhibition_spread_offset_millis_ratio = se.required_int_param( "inhibition_spread_offset_millis_ratio" );
 		agent_hop_count_limit = se.required_int_param( "agent_hop_count_limit" );
+		stats_daemon_period = se.required_int_param( "stats_daemon_period" );
 		//***
 
 #ifdef CONFIG_PLTT_PRIVACY
@@ -285,9 +286,10 @@ namespace wiselib
 		passive->set_decryption_max_retries( decryption_max_retries );
 		passive->set_agent_hop_count_limit( agent_hop_count_limit );
 #endif
+#ifdef DEBUG_PLTT_STATS
+		passive->set_stats_daemon_period( stats_daemon_period );
+#endif
 		passive->enable();
-		//****
-
 		wiselib_radio_.reg_recv_callback<PLTT_Processor, &PLTT_Processor::receive>(this);
 	}
 	//-------------------------------------------------------------------------------------------------

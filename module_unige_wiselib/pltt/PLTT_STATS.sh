@@ -755,6 +755,27 @@ done
 #MESSAGE STATISTICS
 ###############################
 
+awk 'BEGIN { FS=":"; } { if ($1 == STATS_VD ){ print $0 > tmp/tmp_STATS_VD_$3_$2.txt }' $1
+for i in tmp/tmp/tmp_STATS_VD_*; do
+	echo "set datafile separator \":\"" > tmp/stats_vd_g.p
+	echo "set xlabel \"number of messages\"" >> tmp/TRA_anim.p
+	echo "set ylabel \"node id\"" >> tmp/TRA_anim.p
+	#if [ $2 == "eps" ]; then
+		#echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
+		#echo "set output "\"""$nf"/STATS_VD"$tracker_id1"_"$target_id1".eps\"" >> tmp/TRA_anim.p
+		#echo "plot 'tmp/tmp_TR_full.txt' using 1:10 with linespoints pointsize 1 pointtype 7 title \"agent hops\", \\" >> tmp/TRA_anim.p
+		#echo " 'tmp/tmp_TR_full.txt' using 1:(avg_h) with lines lw 4 lc rgb \"blue\" title \"avg hops\"" >> tmp/TRA_anim.p
+	#elif [ $2 == "png" ]; then
+	#	echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
+	#	echo "set output "\"""$nf"/TRA_hops_"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
+	#	echo "plot 'tmp/tmp_TR_full.txt' using 1:10 with linespoints pointsize 1 pointtype 7 title \"agent hops\", \\" >> tmp/TRA_anim.p
+	#	echo " 'tmp/tmp_TR_full.txt' using 1:(avg_h) with lines lw 4 lc rgb \"blue\" title \"avg hops\"" >> tmp/TRA_anim.p
+	#fi
+	gnuplot tmp/stats_vd_g.p
+	rm tmp/stats_vd_g.p
+done
+
+###############################
 rm -rf $1
-rm -rf tmp
+#rm -rf tmp
 

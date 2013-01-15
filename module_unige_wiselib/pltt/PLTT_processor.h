@@ -3,7 +3,8 @@
 #include "/home/konstantinos/Desktop/shawn/buildfiles/_legacyapps_enable_cmake.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 
-#define CONFIG_PLTT_PRIVACY
+//#define CONFIG_PLTT_PRIVACY
+#define DEBUG_PLTT_STATS
 
 #include "apps/wiselib/ext_iface_processor.h"
 #include "sys/processor.h"
@@ -162,6 +163,7 @@ typedef wiselib::PLTT_TrackerType<Os, PLTT_Agent, Node, Position, IntensityNumbe
 		int privacy_power_db;
 #endif
 		int first_time_pos;
+		millis_t stats_daemon_period;
 	};
 }
 
