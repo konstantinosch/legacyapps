@@ -437,17 +437,6 @@ file1=$yy
 			} 
 		}
 		END{
-
-			#print "@@@@ m:"m_index
-			#for ( i=0; i<m_index; i++)
-			#{
-			#	print "m:"m[i]
-			#}
-			#print "@@@@ k:"k_index
-			#for ( i=0; i<k_index; i++)
-			#{
-			#	print "k:"k[i]
-			#}
 			for (j=0; j< k_index; j++)
 			{
 				found=0;
@@ -755,27 +744,40 @@ done
 #MESSAGE STATISTICS
 ###############################
 
-awk 'BEGIN { FS=":"; } { if ($1 == STATS_VD ){ print $0 > tmp/tmp_STATS_VD_$3_$2.txt }' $1
-for i in tmp/tmp/tmp_STATS_VD_*; do
-	echo "set datafile separator \":\"" > tmp/stats_vd_g.p
-	echo "set xlabel \"number of messages\"" >> tmp/TRA_anim.p
-	echo "set ylabel \"node id\"" >> tmp/TRA_anim.p
-	#if [ $2 == "eps" ]; then
-		#echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >>tmp/TRA_anim.p
-		#echo "set output "\"""$nf"/STATS_VD"$tracker_id1"_"$target_id1".eps\"" >> tmp/TRA_anim.p
-		#echo "plot 'tmp/tmp_TR_full.txt' using 1:10 with linespoints pointsize 1 pointtype 7 title \"agent hops\", \\" >> tmp/TRA_anim.p
-		#echo " 'tmp/tmp_TR_full.txt' using 1:(avg_h) with lines lw 4 lc rgb \"blue\" title \"avg hops\"" >> tmp/TRA_anim.p
-	#elif [ $2 == "png" ]; then
-	#	echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/TRA_anim.p
-	#	echo "set output "\"""$nf"/TRA_hops_"$tracker_id1"_"$target_id1".png\"" >> tmp/TRA_anim.p
-	#	echo "plot 'tmp/tmp_TR_full.txt' using 1:10 with linespoints pointsize 1 pointtype 7 title \"agent hops\", \\" >> tmp/TRA_anim.p
-	#	echo " 'tmp/tmp_TR_full.txt' using 1:(avg_h) with lines lw 4 lc rgb \"blue\" title \"avg hops\"" >> tmp/TRA_anim.p
-	#fi
-	gnuplot tmp/stats_vd_g.p
-	rm tmp/stats_vd_g.p
+count=0
+sort -t: -k 2n $1 | awk 'BEGIN { FS=":"; } { if ( $1 == "STATS_VD" ) { print $0 > "tmp/tmp_STATS_VD_"$3".txt" } }'
+for i in tmp/tmp_STATS_VD_*; do
+		
+	avg_DODAG_messages_send=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$4 } END { print sum/NR}' $i`
+	stdev_DODAG_messages_send=`awk 'BEGIN { FS=":";} { sum+=$4; array[NR]=$4 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
+
+	avg_DODAG_bytes_send=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$5 } END { print sum/NR}' $i`
+	stdev_DODAG_bytes_send=`awk 'BEGIN { FS=":";} { sum+=$5; array[NR]=$5 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
+
+	echo "set datafile separator \":\"" > tmp/stats_vd.p
+	echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
+	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+	echo "avg_dms="$avg_DODAG_messages_send >> tmp/stats_vd.p
+	echo "stdev_dms="$stdev_DODAG_messages_send >> tmp/stats_vd.p
+	echo "set label 1 \"avg DODAG_messages_send : "$avg_DODAG_messages_send"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+	echo "set label 2 \"stdev DODAG_messages_send : "$stdev_DODAG_messages_send"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
+	if [ $2 == "eps" ]; then
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+		echo "set output "\"""$nf"/STATS_VD_"$count".eps\"" >> tmp/stats_vd.p
+		echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG messages send\", \\" >> tmp/stats_vd.p
+		echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"blue\" title \"avg DODAG messages send\"" >> tmp/stats_vd.p
+	elif [ $2 == "png" ]; then
+		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+		echo "set output "\"""$nf"/STATS_VD_"$count".png\"" >> tmp/stats_vd.p
+		echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG messages send\", \\" >> tmp/stats_vd.p
+		echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"blue\" title \"avg DODAG messages send\"" >> tmp/stats_vd.p
+	fi
+	gnuplot tmp/stats_vd.p
+	#rm tmp/stats_vd.p
+	count=`expr $count + 1`
 done
 
 ###############################
-rm -rf $1
+#rm -rf $1
 #rm -rf tmp
 
