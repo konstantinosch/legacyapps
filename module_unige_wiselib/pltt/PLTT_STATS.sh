@@ -144,6 +144,11 @@ echo "set datafile separator \":\"" > tmp/CON.p
 echo "set xlabel \"time\"" >> tmp/CON.p
 echo "set ylabel \"connectivity\"" >> tmp/CON.p
 echo "set title \"average topology connectivity convergence\"" >> tmp/CON.p
+echo "avg_c="$avg_c >> tmp/CON.p
+echo "stdev_c="$stdev_c >> tmp/CON.p
+echo "set label 3 \"avg connectivity : "$avg_c"\" at graph  0.02, graph  0.95" >> tmp/CON.p
+echo "set label 4 \"stdev connectivity : "$stdev_c"\" at graph  0.02, graph  0.90" >> tmp/CON.p
+#echo "set yrange[0:"`expr $avg_c*0.3+$avg_c`"]" >> tmp/CON.p
 if [ $2 == "eps" ]; then
 	echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 	echo "set output "\"""$nf"/avg_stdev_c.eps\"" >> tmp/CON.p
@@ -161,6 +166,11 @@ echo "set datafile separator \":\"" > tmp/CON.p
 echo "set xlabel \"time\"" >> tmp/CON.p
 echo "set ylabel \"transmission dB\" " >> tmp/CON.p
 echo "set title \"average transmission dB convergence\"" >> tmp/CON.p
+echo "avg_dB="$avg_dB >> tmp/CON.p
+echo "stdev_dB="$stdev_dB >> tmp/CON.p
+echo "set yrange[-30:"`expr $stdev_dB*1+$stdev_dB`"]" >> tmp/CON.p
+echo "set label 3 \"avg dB : "$avg_dB"\" at graph  0.02, graph  0.95" >> tmp/CON.p
+echo "set label 4 \"stdev dB : "$stdev_dB"\" at graph  0.02, graph  0.90" >> tmp/CON.p
 if [ $2 == "eps" ]; then
 	echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 	echo "set output "\"""$nf"/avg_stdev_dB.eps\"" >> tmp/CON.p
@@ -743,388 +753,796 @@ done
 #MESSAGE STATISTICS
 ###############################
 
-max_samples=`sort -t: -k 2n $1 | awk '
-BEGIN { FS=":"; max=0; } 
-{ 
-	if ( $1 == "STATS_VD" ) 
-	{ 
-		if ( $3 > max )
-		{
-			max = $3
-		}	
-	} 
-}
-END{ print max }'`
-echo "max_samples="$max_samples
 
-max_DODAG_bytes_sent=`sort -t: -k 2n $1 | awk '
-BEGIN { FS=":"; max=0; } 
-{ 
-	if ( $1 == "STATS_VD" ) 
-	{ 
-		if ( $4 > max )
-		{
-			max = $4
-		}	
-	} 
-}
-END{ print max }'`
-echo "max_DODAG_bytes_sent="$max_DODAG_bytes_sent
+tr_mode=`grep -c "STATS_VD" $1`
 
-max_DODAG_messages_sent=`sort -t: -k 2n $1 | awk '
-BEGIN { FS=":"; max=0; } 
-{ 
-	if ( $1 == "STATS_VD" ) 
-	{ 
-		if ( $5 > max )
-		{
-			max = $5
-		}	
-	} 
-}
-END{ print max }'`
-echo "max_DODAG_messages_sent="$max_DODAG_messages_sent
+if [ $tr_mode != 0 ]; then
 
-max_inhibition_bytes_sent=`sort -t: -k 2n $1 | awk '
-BEGIN { FS=":"; max=0; } 
-{ 
-	if ( $1 == "STATS_VD" ) 
+	max_samples=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
 	{ 
-		if ( $6 > max )
-		{
-			max = $6
-		}	
-	} 
-}
-END{ print max }'`
-echo "max_inhibition_bytes_sent="$max_inhibition_bytes_sent
-
-max_inhibition_messages_sent=`sort -t: -k 2n $1 | awk '
-BEGIN { FS=":"; max=0; } 
-{ 
-	if ( $1 == "STATS_VD" ) 
-	{ 
-		if ( $7 > max )
-		{
-			max = $7
-		}	
-	} 
-}
-END{ print max }'`
-echo "max_inhibition_messages_sent="$max_inhibition_messages_sent
-
-sort -t: -k 2n $1 | awk -v ms=$max_samples 'BEGIN { FS=":"; } { 
-	if ( $1 == "STATS_VD" ) 
-	{ 
-		zeroes = length(ms) - length($3); str = ""; 
-		if ( zeroes!=0 ) 
+		if ( $1 == "STATS_VD" ) 
 		{ 
-			for (j=0; j<zeroes; j++) 
+			if ( $3 > max )
+			{
+				max = $3
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_samples="$max_samples
+
+	max_DODAG_bytes_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_VD" ) 
+		{ 
+			if ( $4 > max )
+			{
+				max = $4
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_DODAG_bytes_sent="$max_DODAG_bytes_sent
+
+	max_DODAG_messages_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_VD" ) 
+		{ 
+			if ( $5 > max )
+			{
+				max = $5
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_DODAG_messages_sent="$max_DODAG_messages_sent
+
+	max_inhibition_bytes_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_VD" ) 
+		{ 
+			if ( $6 > max )
+			{
+				max = $6
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_inhibition_bytes_sent="$max_inhibition_bytes_sent
+
+	max_inhibition_messages_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_VD" ) 
+		{ 
+			if ( $7 > max )
+			{
+				max = $7
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_inhibition_messages_sent="$max_inhibition_messages_sent
+
+	sort -t: -k 2n $1 | awk -v ms=$max_samples 'BEGIN { FS=":"; } { 
+		if ( $1 == "STATS_VD" ) 
+		{ 
+			zeroes = length(ms) - length($3); str = ""; 
+			if ( zeroes!=0 ) 
 			{ 
-				str=str"0" 
+				for (j=0; j<zeroes; j++) 
+				{ 
+					str=str"0" 
+				} 
 			} 
+			else 
+			{ 
+				str=""; 
+			} 
+			print $0 > "tmp/tmp_STATS_VD_"str""$3".txt"
+			#print "tmp/tmp_STATS_VD_"$str""$3".txt"  
 		} 
-		else 
-		{ 
-			str=""; 
-		} 
-		print $0 > "tmp/tmp_STATS_VD_"str""$3".txt"
-		#print "tmp/tmp_STATS_VD_"$str""$3".txt"  
-	} 
-}'
+	}'
 
-count=0
+	count=0
 
-for i in tmp/tmp_STATS_VD_*; do
+	for i in tmp/tmp_STATS_VD_*; do
 
-	avg_DODAG_bytes_sent=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$4 } END { print sum/NR}' $i`
-	stdev_DODAG_bytes_sent=`awk 'BEGIN { FS=":";} { sum+=$4; array[NR]=$4 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
+		avg_DODAG_bytes_sent=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$4 } END { print sum/NR}' $i`
+		stdev_DODAG_bytes_sent=`awk 'BEGIN { FS=":";} { sum+=$4; array[NR]=$4 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
 
-	avg_DODAG_messages_sent=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$5 } END { print sum/NR}' $i`
-	stdev_DODAG_messages_sent=`awk 'BEGIN { FS=":";} { sum+=$5; array[NR]=$5 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
+		avg_DODAG_messages_sent=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$5 } END { print sum/NR}' $i`
+		stdev_DODAG_messages_sent=`awk 'BEGIN { FS=":";} { sum+=$5; array[NR]=$5 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
 
-	avg_inhibition_bytes_sent=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$6 } END { print sum/NR}' $i`
-	stdev_inhibition_bytes_sent=`awk 'BEGIN { FS=":";} { sum+=$6; array[NR]=$6 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
+		avg_inhibition_bytes_sent=`awk 'BEGIN { FS=":"; sum=0; } {  sum+=$6 } END { print sum/NR}' $i`
+		stdev_inhibition_bytes_sent=`awk 'BEGIN { FS=":";} { sum+=$6; array[NR]=$6 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
 
-	avg_inhibition_messages_sent=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$7 } END { print sum/NR}' $i`
-	stdev_inhibition_messages_sent=`awk 'BEGIN { FS=":";} { sum+=$7; array[NR]=$7 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
+		avg_inhibition_messages_sent=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$7 } END { print sum/NR}' $i`
+		stdev_inhibition_messages_sent=`awk 'BEGIN { FS=":";} { sum+=$7; array[NR]=$7 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' $i`
 
-	echo "DODAG:"$count":"$avg_DODAG_bytes_sent":"$stdev_DODAG_bytes_sent":"$avg_DODAG_messages_sent":"$stdev_DODAG_messages_sent":"$avg_inhibition_bytes_sent":"$stdev_inhibition_bytes_sent":"$avg_inhibition_messages_sent":"$stdev_inhibition_messages_sent >> tmp/tmp_AGRR_DODAG_SENT.txt
-	echo "DODAG:"$count":"$avg_DODAG_bytes_sent":"$stdev_DODAG_bytes_sent":"$avg_DODAG_messages_sent":"$stdev_DODAG_messages_sent":"$avg_inhibition_bytes_sent":"$stdev_inhibition_bytes_sent":"$avg_inhibition_messages_sent":"$stdev_inhibition_messages_sent
+		echo "DODAG:"$count":"$avg_DODAG_bytes_sent":"$stdev_DODAG_bytes_sent":"$avg_DODAG_messages_sent":"$stdev_DODAG_messages_sent":"$avg_inhibition_bytes_sent":"$stdev_inhibition_bytes_sent":"$avg_inhibition_messages_sent":"$stdev_inhibition_messages_sent >> tmp/tmp_AGRR_DODAG_SENT.txt
+		echo "DODAG:"$count":"$avg_DODAG_bytes_sent":"$stdev_DODAG_bytes_sent":"$avg_DODAG_messages_sent":"$stdev_DODAG_messages_sent":"$avg_inhibition_bytes_sent":"$stdev_inhibition_bytes_sent":"$avg_inhibition_messages_sent":"$stdev_inhibition_messages_sent
 	
-	echo "set datafile separator \":\"" > tmp/stats_vd.p
-	echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
-	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
-	echo "set title \"DODAG bytes sent per node ID\"" >> tmp/TRA_anim.p
-	echo "avg_dbs="$avg_DODAG_bytes_sent >> tmp/stats_vd.p
-	echo "stdev_dbs="$stdev_DODAG_bytes_sent >> tmp/stats_vd.p
-	echo "set yrange[0:"`expr $max_DODAG_bytes_sent*0.3+$max_DODAG_bytes_sent`"]" >> tmp/stats_vd.p
-	echo "set label 1 \"avg DODAG bytes sent : "$avg_DODAG_bytes_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
-	echo "set label 2 \"stdev DODAG bytes sent : "$stdev_DODAG_bytes_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
-	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_dodag_bytes_sent"$count".eps\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"blue\" title \"avg DODAG bytes sent\"" >> tmp/stats_vd.p
-	elif [ $2 == "png" ]; then
-		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_dodag_bytes_sent"$count".png\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"blue\" title \"avg DODAG bytes sent\"" >> tmp/stats_vd.p
-	fi
-	gnuplot tmp/stats_vd.p
-	rm tmp/stats_vd.p
-
-	echo "set datafile separator \":\"" > tmp/stats_vd.p
-	echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
-	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
-	echo "set title \"DODAG messages sent per node ID\"" >> tmp/TRA_anim.p
-	echo "avg_dms="$avg_DODAG_messages_sent >> tmp/stats_vd.p
-	echo "stdev_dms="$stdev_DODAG_messages_sent >> tmp/stats_vd.p
-	echo "set yrange[0:"`expr $max_DODAG_messages_sent*0.3+$max_DODAG_messages_sent`"]" >> tmp/stats_vd.p
-	echo "set label 1 \"avg DODAG_messages_sent : "$avg_DODAG_messages_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
-	echo "set label 2 \"stdev DODAG_messages_sent : "$stdev_DODAG_messages_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
-	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_dodag_messages_sent"$count".eps\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:5 with lines lw 4 lc rgb \"red\" title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"blue\" title \"avg DODAG messages sent\"" >> tmp/stats_vd.p
-	elif [ $2 == "png" ]; then
-		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_dodag_messages_sent"$count".png\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:5 with lines lw 4 lc rgb \"red\" title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"blue\" title \"avg DODAG messages sent\"" >> tmp/stats_vd.p
-	fi
-	gnuplot tmp/stats_vd.p
-	rm tmp/stats_vd.p
-
-	echo "set datafile separator \":\"" > tmp/stats_vd.p
-	echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
-	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
-	echo "set title \"inhibition bytes sent per node ID\"" >> tmp/TRA_anim.p
-	echo "avg_ibs="$avg_inhibition_bytes_sent >> tmp/stats_vd.p
-	echo "stdev_ibs="$stdev_inhibition_bytes_sent >> tmp/stats_vd.p
-	echo "set yrange[0:"`expr $max_inhibition_bytes_sent*0.3+$max_inhibition_bytes_sent`"]" >> tmp/stats_vd.p
-	echo "set label 1 \"avg inhibition_bytes_sent : "$avg_inhibition_bytes_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
-	echo "set label 2 \"stdev inhibition_bytes_sent : "$stdev_inhibition_bytes_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
-	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_inhibition_bytes_sent"$count".eps\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:6 with lines lw 4 lc rgb \"red\" title \"inhibition bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
-	elif [ $2 == "png" ]; then
-		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_inhbition_bytes_sent"$count".png\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:6 with lines lw 4 lc rgb \"red\" title \"inhibition bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
-	fi
-	gnuplot tmp/stats_vd.p
-	rm tmp/stats_vd.p
-
-	echo "set datafile separator \":\"" > tmp/stats_vd.p
-	echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
-	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
-	echo "set title \"inhibition messages sent per node ID\"" >> tmp/TRA_anim.p
-	echo "avg_ims="$avg_inhibition_messages_sent >> tmp/stats_vd.p
-	echo "stdev_ims="$stdev_inhibition_messages_sent >> tmp/stats_vd.p
-	echo "set yrange[0:"`expr $max_inhibition_messages_sent*0.3+$max_inhibition_messages_sent`"]" >> tmp/stats_vd.p
-	echo "set label 1 \"avg inhibition messages sent : "$avg_inhibition_messages_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
-	echo "set label 2 \"stdev inhibition messages sent : "$stdev_inhibition_messages_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
-	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_inhibition_messages_sent"$count".eps\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:7 with lines lw 4 lc rgb \"red\" title \"inhibition messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
-	elif [ $2 == "png" ]; then
-		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_inhibition_messages_sent"$count".png\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:7 with lines lw 4 lc rgb \"red\" title \"inhibition messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
-	fi
-	gnuplot tmp/stats_vd.p
-	rm tmp/stats_vd.p
-
-	echo "set datafile separator \":\"" > tmp/stats_vd.p
-	echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
-	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
-	echo "set title \"all DODAG messages sent per node ID\"" >> tmp/TRA_anim.p
-	echo "avg_ims="$avg_inhibition_messages_sent >> tmp/stats_vd.p
-	echo "stdev_ims="$stdev_inhibition_messages_sent >> tmp/stats_vd.p
-	echo "avg_dms="$avg_DODAG_messages_sent >> tmp/stats_vd.p
-	echo "stdev_dms="$stdev_DODAG_messages_sent >> tmp/stats_vd.p
-	echo "set yrange[0:"`expr $max_DODAG_messages_sent*0.3+$max_DODAG_messages_sent`"]" >> tmp/stats_vd.p
-	echo "set label 1 \"avg DODAG messages sent : "$avg_DODAG_messages_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
-	echo "set label 2 \"stdev DODAG messages sent : "$stdev_DODAG_messages_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
-	echo "set label 3 \"avg inhibition messages sent : "$avg_inhibition_messages_sent"\" at graph  0.02, graph  0.85" >> tmp/stats_vd.p
-	echo "set label 4 \"stdev inhibition messages sent : "$stdev_inhibition_messages_sent"\" at graph  0.02, graph  0.80" >> tmp/stats_vd.p
-	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent"$count".eps\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:5 with points title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"red\" title \"avg DODAG messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:7 with points title \"inhibition messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
-	elif [ $2 == "png" ]; then
-		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent"$count".png\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:5 with points title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"red\" title \"avg DODAG messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:7 with points title \"inhibition messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
-	fi
-	gnuplot tmp/stats_vd.p
-	rm tmp/stats_vd.p
-
-	echo "set datafile separator \":\"" > tmp/stats_vd.p
-	echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
-	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
-	echo "set title \"all DODAG messages sent per node ID\"" >> tmp/TRA_anim.p
-	echo "avg_ims="$avg_inhibition_messages_sent >> tmp/stats_vd.p
-	echo "stdev_ims="$stdev_inhibition_messages_sent >> tmp/stats_vd.p
-	echo "avg_dms="$avg_DODAG_messages_sent >> tmp/stats_vd.p
-	echo "stdev_dms="$stdev_DODAG_messages_sent >> tmp/stats_vd.p
-	echo "set yrange[0:"`expr $max_DODAG_messages_sent*0.3+$max_DODAG_messages_sent`"]" >> tmp/stats_vd.p
-	echo "set label 1 \"avg DODAG messages sent : "$avg_DODAG_messages_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
-	echo "set label 2 \"stdev DODAG messages sent : "$stdev_DODAG_messages_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
-	echo "set label 3 \"avg inhibition messages sent : "$avg_inhibition_messages_sent"\" at graph  0.02, graph  0.85" >> tmp/stats_vd.p
-	echo "set label 4 \"stdev inhibition messages sent : "$stdev_inhibition_messages_sent"\" at graph  0.02, graph  0.80" >> tmp/stats_vd.p
-	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_ver2_"$count".eps\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:5 with lines lw 4 lc rgb \"red\" title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
-		#echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"red\" title \"avg DODAG messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:7 with lines lw 4 lc rgb \"blue\" title \"inhibition messages sent\"" >> tmp/stats_vd.p
-		#echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
-	elif [ $2 == "png" ]; then
-		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_ver2_"$count".png\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:5 with lines lw 4 lc rgb \"red\" title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
-		#echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"red\" title \"avg DODAG messages sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:7 with lines lw 4 lc rgb \"blue\" title \"inhibition messages sent\"" >> tmp/stats_vd.p
-		#echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
-	fi
-	gnuplot tmp/stats_vd.p
-	rm tmp/stats_vd.p
-
-	echo "set datafile separator \":\"" > tmp/stats_vd.p
-	echo "set ylabel \"number of bytes\"" >> tmp/stats_vd.p
-	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
-	echo "set title \"all DODAG bytes sent per node ID\"" >> tmp/TRA_anim.p
-	echo "avg_ibs="$avg_inhibition_bytes_sent >> tmp/stats_vd.p
-	echo "stdev_ibs="$stdev_inhibition_bytes_sent >> tmp/stats_vd.p
-	echo "avg_dbs="$avg_DODAG_bytes_sent >> tmp/stats_vd.p
-	echo "stdev_dbs="$stdev_DODAG_bytes_sent >> tmp/stats_vd.p
-	echo "set yrange[0:"`expr $max_DODAG_bytes_sent*0.3+$max_DODAG_bytes_sent`"]" >> tmp/stats_vd.p
-	echo "set label 1 \"avg DODAG bytes sent : "$avg_DODAG_bytes_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
-	echo "set label 2 \"stdev DODAG bytes sent : "$stdev_DODAG_bytes_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
-	echo "set label 3 \"avg inhibition bytes sent : "$avg_inhibition_bytes_sent"\" at graph  0.02, graph  0.85" >> tmp/stats_vd.p
-	echo "set label 4 \"stdev inhibition bytes sent : "$stdev_inhibition_bytes_sent"\" at graph  0.02, graph  0.80" >> tmp/stats_vd.p
-	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_"$count".eps\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:4 with points title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"red\" title \"avg DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:6 with points title \"inhibition bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
-	elif [ $2 == "png" ]; then
-		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_"$count".png\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:4 with points title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"red\" title \"avg DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:6 with points title \"inhibition bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
-	fi
-	gnuplot tmp/stats_vd.p
-	rm tmp/stats_vd.p
-
-	echo "set datafile separator \":\"" > tmp/stats_vd.p
-	echo "set ylabel \"number of bytes\"" >> tmp/stats_vd.p
-	echo "set xlabel \"node id\"" >> tmp/stats_vd.p
-	echo "set title \"all DODAG bytes sent per node ID\"" >> tmp/TRA_anim.p
-	echo "avg_ibs="$avg_inhibition_bytes_sent >> tmp/stats_vd.p
-	echo "stdev_ibs="$stdev_inhibition_bytes_sent >> tmp/stats_vd.p
-	echo "avg_dbs="$avg_DODAG_bytes_sent >> tmp/stats_vd.p
-	echo "stdev_dbs="$stdev_DODAG_bytes_sent >> tmp/stats_vd.p
-	echo "set yrange[0:"`expr $max_DODAG_bytes_sent*0.3+$max_DODAG_bytes_sent`"]" >> tmp/stats_vd.p
-	echo "set label 1 \"avg DODAG bytes sent : "$avg_DODAG_bytes_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
-	echo "set label 2 \"stdev DODAG bytes sent : "$stdev_DODAG_bytes_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
-	echo "set label 3 \"avg inhibition bytes sent : "$avg_inhibition_bytes_sent"\" at graph  0.02, graph  0.85" >> tmp/stats_vd.p
-	echo "set label 4 \"stdev inhibition bytes sent : "$stdev_inhibition_bytes_sent"\" at graph  0.02, graph  0.80" >> tmp/stats_vd.p
-	if [ $2 == "eps" ]; then
-		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_ver2_"$count".eps\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		#echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"red\" title \"avg DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:6 with lines lw 4 lc rgb \"blue\" title \"inhibition bytes sent\"" >> tmp/stats_vd.p
-		#echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
-	elif [ $2 == "png" ]; then
-		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_ver2_"$count".png\"" >> tmp/stats_vd.p
-		echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		#echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"red\" title \"avg DODAG bytes sent\", \\" >> tmp/stats_vd.p
-		echo " '"$i"' using 2:6 with lines lw 4 lc rgb \"blue\" title \"inhibition bytes sent\"" >> tmp/stats_vd.p
-		#echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
-	fi
-	gnuplot tmp/stats_vd.p
-	rm tmp/stats_vd.p
-
-	#if [ $count == $max_samples ]; then
-
 		echo "set datafile separator \":\"" > tmp/stats_vd.p
-		echo "set view map" >> tmp/stats_vd.p
-		echo "set palette model XYZ rgbformulae 7,5,15" >> tmp/stats_vd.p
-		echo "set size ratio 1" >> tmp/stats_vd.p
-		echo "set xlabel \"x\"" >> tmp/stats_vd.p
-		echo "set ylabel \"y\"" >> tmp/stats_vd.p
-		echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/stats_vd.p
-		echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/stats_vd.p
-		echo "set ylabel \"y\" rotate by 360" >> tmp/stats_vd.p
-		echo "set cbrange[0:"`expr $max_DODAG_messages_sent + $max_inhibition_messages_sent`"]" >> tmp/stats_vd.p
-		echo "set cblabel \" all DODAG messages sent \"" >> tmp/stats_vd.p
-		echo "set title \" spatial distribution of all DODAG messages sent\"" >> tmp/stats_vd.p
-		echo "unset key" >> tmp/stats_vd.p
+		echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
+		echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+		echo "set title \"DODAG bytes sent per node ID\"" >> tmp/TRA_anim.p
+		echo "avg_dbs="$avg_DODAG_bytes_sent >> tmp/stats_vd.p
+		echo "stdev_dbs="$stdev_DODAG_bytes_sent >> tmp/stats_vd.p
+		echo "set yrange[0:"`expr $max_DODAG_bytes_sent*0.3+$max_DODAG_bytes_sent`"]" >> tmp/stats_vd.p
+		echo "set label 1 \"avg DODAG bytes sent : "$avg_DODAG_bytes_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+		echo "set label 2 \"stdev DODAG bytes sent : "$stdev_DODAG_bytes_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
 		if [ $2 == "eps" ]; then
 			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-			echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_spatial_"$count".eps\"" >> tmp/stats_vd.p
-			echo "splot '"$i"' using 12:13:("\$"5+"\$"7) with points palette pointsize 2 pointtype 7" >> tmp/stats_vd.p
-		elif [ $2 == "png" ]; then 
+			echo "set output "\"""$nf"/STATS_VD_dodag_bytes_sent"$count".eps\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"blue\" title \"avg DODAG bytes sent\"" >> tmp/stats_vd.p
+		elif [ $2 == "png" ]; then
 			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-			echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_spatial_"$count".png\"" >> tmp/stats_vd.p
-			echo "splot '"$i"' using 12:13:("\$"5+"\$"7) with points palette pointsize 4 pointtype 7" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_dodag_bytes_sent"$count".png\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"blue\" title \"avg DODAG bytes sent\"" >> tmp/stats_vd.p
 		fi
 		gnuplot tmp/stats_vd.p
 		rm tmp/stats_vd.p
 
 		echo "set datafile separator \":\"" > tmp/stats_vd.p
-		echo "set view map" >> tmp/stats_vd.p
-		echo "set palette model XYZ rgbformulae 7,5,15" >> tmp/stats_vd.p
-		echo "set size ratio 1" >> tmp/stats_vd.p
-		echo "set xlabel \"x\"" >> tmp/stats_vd.p
-		echo "set ylabel \"y\"" >> tmp/stats_vd.p
-		echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/stats_vd.p
-		echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/stats_vd.p
-		echo "set ylabel \"y\" rotate by 360" >> tmp/stats_vd.p
-		echo "set cbrange[0:"`expr $max_DODAG_bytes_sent + $max_inhibition_bytes_sent`"]" >> tmp/stats_vd.p
-		echo "set cblabel \" all DODAG messages sent \"" >> tmp/stats_vd.p
-		echo "set title \" spatial distribution of all DODAG bytes sent\"" >> tmp/stats_vd.p
-		echo "unset key" >>  tmp/stats_vd.p
+		echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
+		echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+		echo "set title \"DODAG messages sent per node ID\"" >> tmp/TRA_anim.p
+		echo "avg_dms="$avg_DODAG_messages_sent >> tmp/stats_vd.p
+		echo "stdev_dms="$stdev_DODAG_messages_sent >> tmp/stats_vd.p
+		echo "set yrange[0:"`expr $max_DODAG_messages_sent*0.3+$max_DODAG_messages_sent`"]" >> tmp/stats_vd.p
+		echo "set label 1 \"avg DODAG_messages_sent : "$avg_DODAG_messages_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+		echo "set label 2 \"stdev DODAG_messages_sent : "$stdev_DODAG_messages_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
 		if [ $2 == "eps" ]; then
 			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
-			echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_spatial_"$count".eps\"" >> tmp/stats_vd.p
-			echo "splot '"$i"' using 12:13:("\$"4+"\$"6) with points palette pointsize 2 pointtype 7" >> tmp/stats_vd.p
-		elif [ $2 == "png" ]; then 
+			echo "set output "\"""$nf"/STATS_VD_dodag_messages_sent"$count".eps\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:5 with lines lw 4 lc rgb \"red\" title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"blue\" title \"avg DODAG messages sent\"" >> tmp/stats_vd.p
+		elif [ $2 == "png" ]; then
 			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
-			echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_spatial_"$count".png\"" >> tmp/stats_vd.p
-			echo "splot '"$i"' using 12:13:("\$"4+"\$"6) with points palette pointsize 4 pointtype 7" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_dodag_messages_sent"$count".png\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:5 with lines lw 4 lc rgb \"red\" title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"blue\" title \"avg DODAG messages sent\"" >> tmp/stats_vd.p
 		fi
 		gnuplot tmp/stats_vd.p
-		rm tmp/stats_vd.p		
-	#fi
+		rm tmp/stats_vd.p
 
-	count=`expr $count + 1`
-done
+		echo "set datafile separator \":\"" > tmp/stats_vd.p
+		echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
+		echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+		echo "set title \"inhibition bytes sent per node ID\"" >> tmp/TRA_anim.p
+		echo "avg_ibs="$avg_inhibition_bytes_sent >> tmp/stats_vd.p
+		echo "stdev_ibs="$stdev_inhibition_bytes_sent >> tmp/stats_vd.p
+		echo "set yrange[0:"`expr $max_inhibition_bytes_sent*0.3+$max_inhibition_bytes_sent`"]" >> tmp/stats_vd.p
+		echo "set label 1 \"avg inhibition_bytes_sent : "$avg_inhibition_bytes_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+		echo "set label 2 \"stdev inhibition_bytes_sent : "$stdev_inhibition_bytes_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_inhibition_bytes_sent"$count".eps\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:6 with lines lw 4 lc rgb \"red\" title \"inhibition bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_inhbition_bytes_sent"$count".png\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:6 with lines lw 4 lc rgb \"red\" title \"inhibition bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
+		fi
+		gnuplot tmp/stats_vd.p
+		rm tmp/stats_vd.p
 
+		echo "set datafile separator \":\"" > tmp/stats_vd.p
+		echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
+		echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+		echo "set title \"inhibition messages sent per node ID\"" >> tmp/TRA_anim.p
+		echo "avg_ims="$avg_inhibition_messages_sent >> tmp/stats_vd.p
+		echo "stdev_ims="$stdev_inhibition_messages_sent >> tmp/stats_vd.p
+		echo "set yrange[0:"`expr $max_inhibition_messages_sent*0.3+$max_inhibition_messages_sent`"]" >> tmp/stats_vd.p
+		echo "set label 1 \"avg inhibition messages sent : "$avg_inhibition_messages_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+		echo "set label 2 \"stdev inhibition messages sent : "$stdev_inhibition_messages_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_inhibition_messages_sent"$count".eps\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:7 with lines lw 4 lc rgb \"red\" title \"inhibition messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_inhibition_messages_sent"$count".png\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:7 with lines lw 4 lc rgb \"red\" title \"inhibition messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
+		fi
+		gnuplot tmp/stats_vd.p
+		rm tmp/stats_vd.p
+
+		echo "set datafile separator \":\"" > tmp/stats_vd.p
+		echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
+		echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+		echo "set title \"all DODAG messages sent per node ID\"" >> tmp/TRA_anim.p
+		echo "avg_ims="$avg_inhibition_messages_sent >> tmp/stats_vd.p
+		echo "stdev_ims="$stdev_inhibition_messages_sent >> tmp/stats_vd.p
+		echo "avg_dms="$avg_DODAG_messages_sent >> tmp/stats_vd.p
+		echo "stdev_dms="$stdev_DODAG_messages_sent >> tmp/stats_vd.p
+		echo "set yrange[0:"`expr $max_DODAG_messages_sent*0.3+$max_DODAG_messages_sent`"]" >> tmp/stats_vd.p
+		echo "set label 1 \"avg DODAG messages sent : "$avg_DODAG_messages_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+		echo "set label 2 \"stdev DODAG messages sent : "$stdev_DODAG_messages_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
+		echo "set label 3 \"avg inhibition messages sent : "$avg_inhibition_messages_sent"\" at graph  0.02, graph  0.85" >> tmp/stats_vd.p
+		echo "set label 4 \"stdev inhibition messages sent : "$stdev_inhibition_messages_sent"\" at graph  0.02, graph  0.80" >> tmp/stats_vd.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent"$count".eps\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:5 with points title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"red\" title \"avg DODAG messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:7 with points title \"inhibition messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent"$count".png\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:5 with points title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"red\" title \"avg DODAG messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:7 with points title \"inhibition messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
+		fi
+		gnuplot tmp/stats_vd.p
+		rm tmp/stats_vd.p
+
+		echo "set datafile separator \":\"" > tmp/stats_vd.p
+		echo "set ylabel \"number of messages\"" >> tmp/stats_vd.p
+		echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+		echo "set title \"all DODAG messages sent per node ID\"" >> tmp/TRA_anim.p
+		echo "avg_ims="$avg_inhibition_messages_sent >> tmp/stats_vd.p
+		echo "stdev_ims="$stdev_inhibition_messages_sent >> tmp/stats_vd.p
+		echo "avg_dms="$avg_DODAG_messages_sent >> tmp/stats_vd.p
+		echo "stdev_dms="$stdev_DODAG_messages_sent >> tmp/stats_vd.p
+		echo "set yrange[0:"`expr $max_DODAG_messages_sent*0.3+$max_DODAG_messages_sent`"]" >> tmp/stats_vd.p
+		echo "set label 1 \"avg DODAG messages sent : "$avg_DODAG_messages_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+		echo "set label 2 \"stdev DODAG messages sent : "$stdev_DODAG_messages_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
+		echo "set label 3 \"avg inhibition messages sent : "$avg_inhibition_messages_sent"\" at graph  0.02, graph  0.85" >> tmp/stats_vd.p
+		echo "set label 4 \"stdev inhibition messages sent : "$stdev_inhibition_messages_sent"\" at graph  0.02, graph  0.80" >> tmp/stats_vd.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_ver2_"$count".eps\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:5 with lines lw 4 lc rgb \"red\" title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
+			#echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"red\" title \"avg DODAG messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:7 with lines lw 4 lc rgb \"blue\" title \"inhibition messages sent\"" >> tmp/stats_vd.p
+			#echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_ver2_"$count".png\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:5 with lines lw 4 lc rgb \"red\" title \"DODAG messages sent\", \\" >> tmp/stats_vd.p
+			#echo " '"$i"' using 2:(avg_dms) with lines lw 4 lc rgb \"red\" title \"avg DODAG messages sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:7 with lines lw 4 lc rgb \"blue\" title \"inhibition messages sent\"" >> tmp/stats_vd.p
+			#echo " '"$i"' using 2:(avg_ims) with lines lw 4 lc rgb \"blue\" title \"avg inhibition messages sent\"" >> tmp/stats_vd.p
+		fi
+		gnuplot tmp/stats_vd.p
+		rm tmp/stats_vd.p
+
+		echo "set datafile separator \":\"" > tmp/stats_vd.p
+		echo "set ylabel \"number of bytes\"" >> tmp/stats_vd.p
+		echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+		echo "set title \"all DODAG bytes sent per node ID\"" >> tmp/TRA_anim.p
+		echo "avg_ibs="$avg_inhibition_bytes_sent >> tmp/stats_vd.p
+		echo "stdev_ibs="$stdev_inhibition_bytes_sent >> tmp/stats_vd.p
+		echo "avg_dbs="$avg_DODAG_bytes_sent >> tmp/stats_vd.p
+		echo "stdev_dbs="$stdev_DODAG_bytes_sent >> tmp/stats_vd.p
+		echo "set yrange[0:"`expr $max_DODAG_bytes_sent*0.3+$max_DODAG_bytes_sent`"]" >> tmp/stats_vd.p
+		echo "set label 1 \"avg DODAG bytes sent : "$avg_DODAG_bytes_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+		echo "set label 2 \"stdev DODAG bytes sent : "$stdev_DODAG_bytes_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
+		echo "set label 3 \"avg inhibition bytes sent : "$avg_inhibition_bytes_sent"\" at graph  0.02, graph  0.85" >> tmp/stats_vd.p
+		echo "set label 4 \"stdev inhibition bytes sent : "$stdev_inhibition_bytes_sent"\" at graph  0.02, graph  0.80" >> tmp/stats_vd.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_"$count".eps\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:4 with points title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"red\" title \"avg DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:6 with points title \"inhibition bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_"$count".png\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:4 with points title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"red\" title \"avg DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:6 with points title \"inhibition bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
+		fi
+		gnuplot tmp/stats_vd.p
+		rm tmp/stats_vd.p
+
+		echo "set datafile separator \":\"" > tmp/stats_vd.p
+		echo "set ylabel \"number of bytes\"" >> tmp/stats_vd.p
+		echo "set xlabel \"node id\"" >> tmp/stats_vd.p
+		echo "set title \"all DODAG bytes sent per node ID\"" >> tmp/TRA_anim.p
+		echo "avg_ibs="$avg_inhibition_bytes_sent >> tmp/stats_vd.p
+		echo "stdev_ibs="$stdev_inhibition_bytes_sent >> tmp/stats_vd.p
+		echo "avg_dbs="$avg_DODAG_bytes_sent >> tmp/stats_vd.p
+		echo "stdev_dbs="$stdev_DODAG_bytes_sent >> tmp/stats_vd.p
+		echo "set yrange[0:"`expr $max_DODAG_bytes_sent*0.3+$max_DODAG_bytes_sent`"]" >> tmp/stats_vd.p
+		echo "set label 1 \"avg DODAG bytes sent : "$avg_DODAG_bytes_sent"\" at graph  0.02, graph  0.95" >> tmp/stats_vd.p
+		echo "set label 2 \"stdev DODAG bytes sent : "$stdev_DODAG_bytes_sent"\" at graph  0.02, graph  0.90" >> tmp/stats_vd.p
+		echo "set label 3 \"avg inhibition bytes sent : "$avg_inhibition_bytes_sent"\" at graph  0.02, graph  0.85" >> tmp/stats_vd.p
+		echo "set label 4 \"stdev inhibition bytes sent : "$stdev_inhibition_bytes_sent"\" at graph  0.02, graph  0.80" >> tmp/stats_vd.p
+		if [ $2 == "eps" ]; then
+			echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_ver2_"$count".eps\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			#echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"red\" title \"avg DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:6 with lines lw 4 lc rgb \"blue\" title \"inhibition bytes sent\"" >> tmp/stats_vd.p
+			#echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
+		elif [ $2 == "png" ]; then
+			echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+			echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_ver2_"$count".png\"" >> tmp/stats_vd.p
+			echo "plot '"$i"' using 2:4 with lines lw 4 lc rgb \"red\" title \"DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			#echo " '"$i"' using 2:(avg_dbs) with lines lw 4 lc rgb \"red\" title \"avg DODAG bytes sent\", \\" >> tmp/stats_vd.p
+			echo " '"$i"' using 2:6 with lines lw 4 lc rgb \"blue\" title \"inhibition bytes sent\"" >> tmp/stats_vd.p
+			#echo " '"$i"' using 2:(avg_ibs) with lines lw 4 lc rgb \"blue\" title \"avg inhibition bytes sent\"" >> tmp/stats_vd.p
+		fi
+		gnuplot tmp/stats_vd.p
+		rm tmp/stats_vd.p
+
+		#if [ $count == $max_samples ]; then
+
+			echo "set datafile separator \":\"" > tmp/stats_vd.p
+			echo "set view map" >> tmp/stats_vd.p
+			echo "set palette model XYZ rgbformulae 7,5,15" >> tmp/stats_vd.p
+			echo "set size ratio 1" >> tmp/stats_vd.p
+			echo "set xlabel \"x\"" >> tmp/stats_vd.p
+			echo "set ylabel \"y\"" >> tmp/stats_vd.p
+			echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/stats_vd.p
+			echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/stats_vd.p
+			echo "set ylabel \"y\" rotate by 360" >> tmp/stats_vd.p
+			echo "set cbrange[0:"`expr $max_DODAG_messages_sent + $max_inhibition_messages_sent`"]" >> tmp/stats_vd.p
+			echo "set cblabel \" all DODAG messages sent \"" >> tmp/stats_vd.p
+			echo "set title \" spatial distribution of all DODAG messages sent\"" >> tmp/stats_vd.p
+			echo "unset key" >> tmp/stats_vd.p
+			if [ $2 == "eps" ]; then
+				echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+				echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_spatial_"$count".eps\"" >> tmp/stats_vd.p
+				echo "splot '"$i"' using 12:13:("\$"5+"\$"7) with points palette pointsize 2 pointtype 7" >> tmp/stats_vd.p
+			elif [ $2 == "png" ]; then 
+				echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+				echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_spatial_"$count".png\"" >> tmp/stats_vd.p
+				echo "splot '"$i"' using 12:13:("\$"5+"\$"7) with points palette pointsize 4 pointtype 7" >> tmp/stats_vd.p
+			fi
+			gnuplot tmp/stats_vd.p
+			rm tmp/stats_vd.p
+
+			echo "set datafile separator \":\"" > tmp/stats_vd.p
+			echo "set view map" >> tmp/stats_vd.p
+			echo "set palette model XYZ rgbformulae 7,5,15" >> tmp/stats_vd.p
+			echo "set size ratio 1" >> tmp/stats_vd.p
+			echo "set xlabel \"x\"" >> tmp/stats_vd.p
+			echo "set ylabel \"y\"" >> tmp/stats_vd.p
+			echo "set xrange[0-1:"$TOPO_x_ceiling"+1]" >> tmp/stats_vd.p
+			echo "set yrange[0-1:"$TOPO_y_ceiling"+1]" >> tmp/stats_vd.p
+			echo "set ylabel \"y\" rotate by 360" >> tmp/stats_vd.p
+			echo "set cbrange[0:"`expr $max_DODAG_bytes_sent + $max_inhibition_bytes_sent`"]" >> tmp/stats_vd.p
+			echo "set cblabel \" all DODAG messages sent \"" >> tmp/stats_vd.p
+			echo "set title \" spatial distribution of all DODAG bytes sent\"" >> tmp/stats_vd.p
+			echo "unset key" >>  tmp/stats_vd.p
+			if [ $2 == "eps" ]; then
+				echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/stats_vd.p
+				echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_spatial_"$count".eps\"" >> tmp/stats_vd.p
+				echo "splot '"$i"' using 12:13:("\$"4+"\$"6) with points palette pointsize 2 pointtype 7" >> tmp/stats_vd.p
+			elif [ $2 == "png" ]; then 
+				echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/stats_vd.p
+				echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_spatial_"$count".png\"" >> tmp/stats_vd.p
+				echo "splot '"$i"' using 12:13:("\$"4+"\$"6) with points palette pointsize 4 pointtype 7" >> tmp/stats_vd.p
+			fi
+			gnuplot tmp/stats_vd.p
+			rm tmp/stats_vd.p		
+		#fi
+
+		count=`expr $count + 1`
+	done
+
+	awk 'BEGIN { FS = ":" }
+	{ x_sum += $2
+		  y_sum += $3+$4
+		  xy_sum += $2*($3+$4)
+		  x2_sum += $2*$2
+		  num += 1
+		  x[NR] = $2
+		  y[NR] = $3+$4
+		}
+	END { mean_x = x_sum / num
+	      mean_y = y_sum / num
+	      mean_xy = xy_sum / num
+	      mean_x2 = x2_sum / num
+	      slope = (mean_xy - (mean_x*mean_y)) / (mean_x2 - (mean_x*mean_x))
+	      inter = mean_y - slope * mean_x
+	      for (i = num; i > 0; i--) {
+		  ss_total += (y[i] - mean_y)**2
+		  ss_residual += (y[i] - (slope * x[i] + inter))**2
+	      }
+	      r2 = 1 - (ss_residual / ss_total)
+	      printf("%g:%g:%g", slope, inter, r2)
+	    }' tmp/tmp_AGRR_DODAG_SENT.txt > tmp/tmp_lin_regr_DODAG_bytes_sent.txt
+
+	DODAG_bytes_slope=`awk 'BEGIN{ FS=":" } { Dbs = $1 } END { print Dbs }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
+	DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dbi = $2 }END { print Dbi }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
+	DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dbr2 = $3 } END { print Dbr2 }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
+
+	echo "All DODAG bytes sent slope ="$DODAG_bytes_slope
+	echo "All DODAG bytes sent intercept ="$DODAG_bytes_inter
+	echo "All DODAG bytes sent R2 ="$DODAG_bytes_r2
+
+	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
+	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set ylabel \"bytes\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set title \" linear regression of all DODAG bytes sent\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set label 1 \"Correlation coefficient : "$DODAG_bytes_r2"\" at graph  0.02, graph  0.95" >> tmp/tmp_lin_regr_DODAG.p
+	echo "f(x)="$DODAG_bytes_slope"*x+"$DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
+	if [ $2 == "eps" ]; then
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
+		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr.eps\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "plot f(x) with lines title \"f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"3+"\$"4) with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
+	elif [ $2 == "png" ]; then 
+		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/tmp_lin_regr_DODAG.p
+		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr.png\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "plot f(x) with lines title \"f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"3+"\$"4)  with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG bytes sent\"" >> tmp/tmp_lin_regr_DODAG.p
+	fi
+	gnuplot tmp/tmp_lin_regr_DODAG.p
+	rm tmp/tmp_lin_regr_DODAG.p
+
+	awk 'BEGIN { FS = ":" }
+	{ x_sum += $2
+		  y_sum += $5+$6
+		  xy_sum += $2*($5+$6)
+		  x2_sum += $2*$2
+		  num += 1
+		  x[NR] = $2
+		  y[NR] = $5+$6
+
+		}
+	END { mean_x = x_sum / num
+	      mean_y = y_sum / num
+	      mean_xy = xy_sum / num
+	      mean_x2 = x2_sum / num
+	      slope = (mean_xy - (mean_x*mean_y)) / (mean_x2 - (mean_x*mean_x))
+	      inter = mean_y - slope * mean_x
+	      for (i = num; i > 0; i--) {
+		  ss_total += (y[i] - mean_y)**2
+		  ss_residual += (y[i] - (slope * x[i] + inter))**2
+	      }
+	      r2 = 1 - (ss_residual / ss_total)
+	      printf("%g:%g:%g", slope, inter, r2)
+	    }' tmp/tmp_AGRR_DODAG_SENT.txt > tmp/tmp_lin_regr_DODAG_messages_sent.txt
+
+	DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
+	DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
+	DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
+
+	echo "All DODAG messages sent slope ="$DODAG_messages_slope
+	echo "All DODAG messages sent intercept ="$DODAG_messages_inter
+	echo "All DODAG messages sent R2 ="$DODAG_messages_r2
+
+	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
+	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set ylabel \"messages\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set title \" linear regression of all DODAG messages sent\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set label 1 \"Correlation coefficient : "$DODAG_messages_r2"\" at graph  0.02, graph  0.95" >> tmp/tmp_lin_regr_DODAG.p
+	echo "f(x)="$DODAG_messages_slope"*x+"$DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
+	if [ $2 == "eps" ]; then
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
+		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr.eps\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "plot f(x) with lines title \"f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"5+"\$"6) with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG messages sent\""  >> tmp/tmp_lin_regr_DODAG.p
+	elif [ $2 == "png" ]; then 
+		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/tmp_lin_regr_DODAG.p
+		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr.png\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "plot f(x) with lines title \"f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"5+"\$"6)  with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG messages sent\"" >> tmp/tmp_lin_regr_DODAG.p
+	fi
+	gnuplot tmp/tmp_lin_regr_DODAG.p
+	rm tmp/tmp_lin_regr_DODAG.p
+
+	awk 'BEGIN { FS = ":" }
+	{ x_sum += $2
+		  y_sum += $4
+		  xy_sum += $2*$4
+		  x2_sum += $2*$2
+		  num += 1
+		  x[NR] = $2
+		  y[NR] = $4
+
+		}
+	END { mean_x = x_sum / num
+	      mean_y = y_sum / num
+	      mean_xy = xy_sum / num
+	      mean_x2 = x2_sum / num
+	      slope = (mean_xy - (mean_x*mean_y)) / (mean_x2 - (mean_x*mean_x))
+	      inter = mean_y - slope * mean_x
+	      for (i = num; i > 0; i--) {
+		  ss_total += (y[i] - mean_y)**2
+		  ss_residual += (y[i] - (slope * x[i] + inter))**2
+	      }
+	      r2 = 1 - (ss_residual / ss_total)
+	      printf("%g:%g:%g", slope, inter, r2)
+	    }' tmp/tmp_AGRR_DODAG_SENT.txt > tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt
+
+	I_DODAG_bytes_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt`
+	I_DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt`
+	I_DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt`
+
+	echo "Inhibition DODAG bytes sent slope : "$I_DODAG_bytes_slope
+	echo "Inhibition DODAG bytes sent intercept : "$I_DODAG_bytes_inter
+	echo "Inhibition DODAG bytes sent R2 : "$I_DODAG_bytes_r2
+
+	awk 'BEGIN { FS = ":" }
+	{ x_sum += $2
+		  y_sum += $3
+		  xy_sum += $2*$3
+		  x2_sum += $2*$2
+		  num += 1
+		  x[NR] = $2
+		  y[NR] = $3
+
+		}
+	END { mean_x = x_sum / num
+	      mean_y = y_sum / num
+	      mean_xy = xy_sum / num
+	      mean_x2 = x2_sum / num
+	      slope = (mean_xy - (mean_x*mean_y)) / (mean_x2 - (mean_x*mean_x))
+	      inter = mean_y - slope * mean_x
+	      for (i = num; i > 0; i--) {
+		  ss_total += (y[i] - mean_y)**2
+		  ss_residual += (y[i] - (slope * x[i] + inter))**2
+	      }
+	      r2 = 1 - (ss_residual / ss_total)
+	      printf("%g:%g:%g", slope, inter, r2)
+	    }' tmp/tmp_AGRR_DODAG_SENT.txt > tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt
+
+	S_DODAG_bytes_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
+	S_DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
+	S_DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
+
+	echo "Spread DODAG bytes sent slope : "$S_DODAG_bytes_slope
+	echo "Spread DODAG bytes sent intercept : "$S_DODAG_bytes_inter
+	echo "Spread DODAG bytes sent R2 : "$S_DODAG_bytes_r2
+
+	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
+	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set ylabel \"bytes\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set title \" linear regression of all DODAG bytes sent\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set label 1 \"Spread bytes correlation coefficient : "$S_DODAG_bytes_r2"\" at graph  0.02, graph  0.95" >> tmp/tmp_lin_regr_DODAG.p
+	echo "f1(x)="$S_DODAG_bytes_slope"*x+"$S_DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set label 2 \"Inhibition bytes correlation coefficient : "$I_DODAG_bytes_r2"\" at graph  0.02, graph  0.90" >> tmp/tmp_lin_regr_DODAG.p
+	echo "f2(x)="$I_DODAG_bytes_slope"*x+"$I_DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
+	if [ $2 == "eps" ]; then
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
+		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr_v2.eps\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "plot f1(x) with lines title \"Spread bytes f(x)\" lc rgb \"blue\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:3 with points pointsize 2 pointtype 7 lc rgb \"blue\" title \"Spread bytes sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
+		echo "f2(x) with lines title \"Inhibition bytes f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p	
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:4 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
+	elif [ $2 == "png" ]; then 
+		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/tmp_lin_regr_DODAG.p
+		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr_v2.png\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "plot f1(x) with lines title \"Spread bytes f(x)\" lc rgb \"blue\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:3 with points pointsize 2 pointtype 7 lc rgb \"blue\" title \"Spread bytes sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
+		echo "f2(x) with lines title \"Inhibition bytes f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p	
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:4 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
+	fi
+	gnuplot tmp/tmp_lin_regr_DODAG.p
+	rm tmp/tmp_lin_regr_DODAG.p
+
+	awk 'BEGIN { FS = ":" }
+	{ x_sum += $2
+		  y_sum += $6
+		  xy_sum += $2*$6
+		  x2_sum += $2*$2
+		  num += 1
+		  x[NR] = $2
+		  y[NR] = $6
+
+		}
+	END { mean_x = x_sum / num
+	      mean_y = y_sum / num
+	      mean_xy = xy_sum / num
+	      mean_x2 = x2_sum / num
+	      slope = (mean_xy - (mean_x*mean_y)) / (mean_x2 - (mean_x*mean_x))
+	      inter = mean_y - slope * mean_x
+	      for (i = num; i > 0; i--) {
+		  ss_total += (y[i] - mean_y)**2
+		  ss_residual += (y[i] - (slope * x[i] + inter))**2
+	      }
+	      r2 = 1 - (ss_residual / ss_total)
+	      printf("%g:%g:%g", slope, inter, r2)
+	    }' tmp/tmp_AGRR_DODAG_SENT.txt > tmp/tmp_lin_regr_I_DODAG_messages_sent.txt
+
+	I_DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
+	I_DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
+	I_DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
+
+	echo "Inhibition DODAG messages sent slope : "$I_DODAG_messages_slope
+	echo "Inhibition DODAG messages sent intercept : "$I_DODAG_messages_inter
+	echo "Inhibition DODAG messages sent R2 : "$I_DODAG_messages_r2
+
+	awk 'BEGIN { FS = ":" }
+	{ x_sum += $2
+		  y_sum += $5
+		  xy_sum += $2*$5
+		  x2_sum += $2*$2
+		  num += 1
+		  x[NR] = $2
+		  y[NR] = $5
+
+		}
+	END { mean_x = x_sum / num
+	      mean_y = y_sum / num
+	      mean_xy = xy_sum / num
+	      mean_x2 = x2_sum / num
+	      slope = (mean_xy - (mean_x*mean_y)) / (mean_x2 - (mean_x*mean_x))
+	      inter = mean_y - slope * mean_x
+	      for (i = num; i > 0; i--) {
+		  ss_total += (y[i] - mean_y)**2
+		  ss_residual += (y[i] - (slope * x[i] + inter))**2
+	      }
+	      r2 = 1 - (ss_residual / ss_total)
+	      printf("%g:%g:%g", slope, inter, r2)
+	    }' tmp/tmp_AGRR_DODAG_SENT.txt > tmp/tmp_lin_regr_S_DODAG_messages_sent.txt
+
+	S_DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
+	S_DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
+	S_DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
+
+	echo "Spread DODAG messages sent slope : "$S_DODAG_messages_slope
+	echo "Spread DODAG messages sent intercept : "$S_DODAG_messages_inter
+	echo "Spread DODAG messages sent R2 : "$S_DODAG_messages_r2
+
+	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
+	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set ylabel \"messages\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set title \" linear regression of all DODAG messages sent\"" >> tmp/tmp_lin_regr_DODAG.p
+	echo "set label 1 \"Spread messages correlation coefficient : "$S_DODAG_messages_r2"\" at graph  0.02, graph  0.95" >> tmp/tmp_lin_regr_DODAG.p
+	echo "f1(x)="$S_DODAG_messages_slope"*x+"$S_DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set label 2 \"Inhibition messages correlation coefficient : "$I_DODAG_messages_r2"\" at graph  0.02, graph  0.90" >> tmp/tmp_lin_regr_DODAG.p
+	echo "f2(x)="$I_DODAG_messages_slope"*x+"$I_DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
+	if [ $2 == "eps" ]; then
+		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
+		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr_v2.eps\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "plot f1(x) with lines title \"Spread messages f(x)\" lc rgb \"blue\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:5 with points pointsize 2 pointtype 7 lc rgb \"blue\" title \"Spread messages sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
+		echo "f2(x) with lines title \"Inhibition messages f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:6 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition messages sent\""  >> tmp/tmp_lin_regr_DODAG.p
+	elif [ $2 == "png" ]; then 
+		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/tmp_lin_regr_DODAG.p
+		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr_v2.png\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "plot f1(x) with lines title \"Spread messages f(x)\" lc rgb \"blue\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:5 with points pointsize 2 pointtype 7 lc rgb \"blue\" title \"Spread messages sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
+		echo "f2(x) with lines title \"Inhibition messages f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:6 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition messages sent\""  >> tmp/tmp_lin_regr_DODAG.p
+	fi
+	gnuplot tmp/tmp_lin_regr_DODAG.p
+	rm tmp/tmp_lin_regr_DODAG.p
+else
+
+	max_samples=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			if ( $3 > max )
+			{
+				max = $3
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_samples="$max_samples
+
+	max_DODAG_bytes_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			if ( $4 > max )
+			{
+				max = $4
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_DODAG_bytes_sent="$max_DODAG_bytes_sent
+
+	max_DODAG_messages_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			if ( $5 > max )
+			{
+				max = $5
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_DODAG_messages_sent="$max_DODAG_messages_sent
+
+	max_inhibition_bytes_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			if ( $6 > max )
+			{
+				max = $6
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_inhibition_bytes_sent="$max_inhibition_bytes_sent
+
+	max_inhibition_messages_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			if ( $7 > max )
+			{
+				max = $7
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_inhibition_messages_sent="$max_inhibition_messages_sent
+
+	max_privacy_messages_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			if ( $9 > max )
+			{
+				max = $9
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_privacy_messages_sent="$max_privacy_messages_sent
+
+	max_privacy_bytes_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			if ( $8 > max )
+			{
+				max = $8
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_privacy_bytes_sent="$max_privacy_bytes_sent
+
+	sort -t: -k 2n $1 | awk -v ms=$max_samples 'BEGIN { FS=":"; } { 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			zeroes = length(ms) - length($3); str = ""; 
+			if ( zeroes!=0 ) 
+			{ 
+				for (j=0; j<zeroes; j++) 
+				{ 
+					str=str"0" 
+				} 
+			} 
+			else 
+			{ 
+				str=""; 
+			} 
+			print $0 > "tmp/tmp_STATS_PD_"str""$3".txt"
+			#print "tmp/tmp_STATS_PD_"$str""$3".txt"  
+		} 
+	}'
+
+fi
 ###############################
 #rm -rf $1
-#rm -rf tmp
+rm -rf tmp
 
