@@ -139,6 +139,10 @@ for i in tmp/tmp_CON_*; do
 	fi
 	gnuplot tmp/CON.p
 done
+
+
+avg_c_ceiling=`awk 'BEGIN{FS=":"; max=0;}{ if ($4 > max){ max=$4; } }END{print max}' tmp/tmp_avg_stdev_all.txt`
+
 rm tmp/CON.p
 echo "set datafile separator \":\"" > tmp/CON.p
 echo "set xlabel \"time\"" >> tmp/CON.p
@@ -148,7 +152,7 @@ echo "avg_c="$avg_c >> tmp/CON.p
 echo "stdev_c="$stdev_c >> tmp/CON.p
 echo "set label 3 \"avg connectivity : "$avg_c"\" at graph  0.02, graph  0.95" >> tmp/CON.p
 echo "set label 4 \"stdev connectivity : "$stdev_c"\" at graph  0.02, graph  0.90" >> tmp/CON.p
-#echo "set yrange[0:"`expr $avg_c*0.3+$avg_c`"]" >> tmp/CON.p
+echo "set yrange[0:"`expr $avg_c_ceiling*0.4+$avg_c_ceiling`"]" >> tmp/CON.p
 if [ $2 == "eps" ]; then
 	echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/CON.p
 	echo "set output "\"""$nf"/avg_stdev_c.eps\"" >> tmp/CON.p
@@ -162,6 +166,7 @@ elif [ $2 == "png" ]; then
 fi
 gnuplot tmp/CON.p
 rm tmp/CON.p
+
 echo "set datafile separator \":\"" > tmp/CON.p
 echo "set xlabel \"time\"" >> tmp/CON.p
 echo "set ylabel \"transmission dB\" " >> tmp/CON.p
@@ -1544,5 +1549,5 @@ else
 fi
 ###############################
 #rm -rf $1
-rm -rf tmp
+#rm -rf tmp
 
