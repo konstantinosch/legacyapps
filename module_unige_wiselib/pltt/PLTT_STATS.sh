@@ -40,6 +40,7 @@ z=0
 x=0
 y=0
 q=0
+echo "##############################################################"
 for i in tmp/tmp_CON_*; do
 	avg_c=`awk 'BEGIN { FS=":"; sum=0; } {sum+=$4} END { print sum/NR}' $i`
 	avg_dB=`awk 'BEGIN { FS=":"; sum=0; } {sum+=$6} END { print sum/NR}' $i`
@@ -188,6 +189,11 @@ elif [ $2 == "png" ]; then
 	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:3 with lines lw 4 lc rgb \"blue\" title \"stdev dB\"" >> tmp/CON.p
 fi
 gnuplot tmp/CON.p
+echo "##############################################################"
+echo
+echo
+echo
+echo "##############################################################"
 ###############################
 
 #TRACKING INFORMATION
@@ -218,6 +224,7 @@ for ii in tmp/tmp_TAR*; do
 	fi
 	gnuplot tmp/TAR.p
 done
+
 sort -t: -k 3n -k 4n -k 6n $1 | awk 'BEGIN { FS=":"; } { if ( $1 == "TRA" ) { print $0 > "tmp/tmp_TRA"$3"-"$4".txt" } }'
 for jj in tmp/tmp_TRA*; do
 	str1=${jj:11}	
@@ -248,6 +255,10 @@ for jj in tmp/tmp_TRA*; do
 	fi
 	gnuplot tmp/TRA.p
 done
+echo "##############################################################"
+echo
+echo
+echo
 max_range=`awk 'BEGIN{FS=":"}{ if ($1=="SFM"){ print $2 } }' $1`
 tar_db=`awk 'BEGIN{FS=":"; db=0;}{ if ($1=="TAR"){ db=$7 } }END{ print db}' $1`
 com_radius=`echo "" | awk -v mr=$max_range -v tdb=$tar_db 'END {print mr*10^(tdb/30)}'`
@@ -272,10 +283,13 @@ for yy in tmp/tmp_TRA*; do
 			file3=$xx
 		fi	
 	done
+	echo "##############################################################"
 	echo $yy":"$tracker_id1":"$target_id1
 file1=$yy
 	if [ "$file1"!="$empty" ] && [ "$file2"!="$empty" ] && [ "$file3"!="$empty" ]; then
+
 		echo $file1 $file2 $file3
+	echo "##############################################################"
 		cat $file1 $file2 $file3 | awk -v cr=$com_radius 'BEGIN { FS=":"; tar_index=0; tra_index=0; dupes=0; } 
 	{ 
 		if ( $1 == "TAR" )
@@ -353,16 +367,34 @@ file1=$yy
 	}' > tmp/tmp_TR_full.txt #all reports reaching tracker
 		all_reports=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "QTR" ) &&( $2 == id ) ) { i=i+1; } }END{ print i }' $1`
 ######
-		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "QTR" ) &&( $2 == id ) ) { print $0} }' $1 > tmp/tmp_REP_init.txt #all reports generated from tracker
+		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "QTR" ) &&( $2 == id ) ) { print $0} }' $1  > tmp/tmp_REP_init.txt #all reports generated from tracker
+		awk 'BEGIN{FS=":";n=0;}{a[n]=$4; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){print "QTR:dup:"a[i]":"a[j]":"i":"j}}}}' tmp/tmp_REP_init.txt
 		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "RTR" ) &&( $3 == id ) ) { print "RTR:"$5} }' $1 > tmp/tmp_RTR.txt #pre_hop_report comm range filter
+		awk 'BEGIN{FS=":";n=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){print "RTR:dup:"a[i]":"i":"j}}}}' tmp/tmp_RTR.txt
 		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "LMQ" ) &&( $7 == id ) ) { print "LMQ:"$5} }' $1 > tmp/tmp_LMQ.txt #hop count limit on query
+		awk 'BEGIN{FS=":";n=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){print "LMQ:dup:"a[i]":"i":"j}}}}' tmp/tmp_LMQ.txt	
 		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "LMR" ) &&( $7 == id ) ) { print "LMR:"$5} }' $1 > tmp/tmp_LMR.txt #hop count limit on reports
-
-		cat tmp/tmp_REP_init.txt tmp/tmp_TR_full.txt | awk 'BEGIN{ FS=":"; tra_index=0; q_index=0; }
-		{
-		}
-		END{}'
-
+		awk 'BEGIN{FS=":";n=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){print "LMR:dup:"a[i]":"i":"j}}}}' tmp/tmp_LMR.txt
+		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "ENR" ) &&( $7 == id ) ) { print "ENR:"$5} }' $1 > tmp/tmp_ENR.txt #lost due to no neigh list
+		awk 'BEGIN{FS=":";n=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){print "ENR:dup:"a[i]":"i":"j}}}}'	tmp/tmp_ENR.txt
+		awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{  if ( ( $1 == "ZTR" ) &&( $2 == id ) ) { print "ZTR:"$5} }' $1 > tmp/tmp_ZTR.txt #lost due to reliable?
+		awk 'BEGIN{FS=":";n=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){print "ZTR:dup:"a[i]":"i":"j}}}}' tmp/tmp_ZTR.txt
+		row_sum=`awk '{}END{print FNR}' tmp/tmp_TR_full.txt`
+		qtr_dupes=`awk 'BEGIN{FS=":";n=0;dupes=0;}{a[n]=$4; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){dupes=dupes+1;}}}print dupes/2;}' tmp/tmp_REP_init.txt`
+		rtr_dupes=`awk 'BEGIN{FS=":";n=0;dupes=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){dupes=dupes+1;}}}print dupes/2;}' tmp/tmp_RTR.txt`
+		lmq_dupes=`awk 'BEGIN{FS=":";n=0;dupes=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){dupes=dupes+1;}}}print dupes/2;}' tmp/tmp_LMQ.txt`	
+		lmr_dupes=`awk 'BEGIN{FS=":";n=0;dupes=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){dupes=dupes+1;}}}print dupes/2;}' tmp/tmp_LMR.txt`
+		enr_dupes=`awk 'BEGIN{FS=":";n=0;dupes=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){dupes=dupes+1;}}}print dupes/2;}' tmp/tmp_ENR.txt`
+		ztr_dupes=`awk 'BEGIN{FS=":";n=0;dupes=0;}{a[n]=$2; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){dupes=dupes+1;}}}print dupes/2;}' tmp/tmp_ZTR.txt`
+		tra_dupes=`awk 'BEGIN{FS=":";n=0;dupes=0;}{a[n]=$8; n=n+1}END{for(i=0; i<n; i++){for(j=0; j<n; j++){if((a[i]""==a[j]"")&&(i!=j)){dupes=dupes+1;}}}print dupes/2;}' tmp/tmp_TR_full.txt`
+		#echo $row_sum
+		#echo $qtr_dupes
+		#echo $rtr_dupes
+		#echo $lmq_dupes
+		#echo $lmr_dupes
+		#echo $enr_dupes
+		#echo $ztr_dupes
+		#echo $tra_dupes
 		cat tmp/tmp_REP_init.txt tmp/tmp_TR_full.txt | awk 'BEGIN{ FS=":"; tra_index=0; q_index=0; }
 		{ 
 			if ($1 == "QTR")
@@ -427,7 +459,7 @@ file1=$yy
 		
 		}' > tmp/tmp_RTR_not_found.txt
 
-		cat tmp/tmp_REP_not_found.txt tmp/tmp_RTR_not_found.txt tmp/tmp_LMQ.txt tmp/tmp_LMR.txt | awk 'BEGIN{ FS=":"; m_index=0; k_index=0; }
+		cat tmp/tmp_REP_not_found.txt tmp/tmp_RTR_not_found.txt tmp/tmp_LMQ.txt tmp/tmp_LMR.txt tmp/tmp_ENR.txt | awk 'BEGIN{ FS=":"; m_index=0; k_index=0; }
 		{ 
 			if ( $1 == "RTR" )
 			{ 
@@ -448,7 +480,17 @@ file1=$yy
 			{ 
 				k[k_index]=$3; 
 				k_index = k_index + 1; 
-			} 
+			}
+			else if ( $1 == "ENR" )
+			{ 
+				m[m_index]=$2
+				m_index = m_index + 1;
+			}
+			else if ( $1 == "ZTR" )
+			{ 
+				m[m_index]=$2
+				m_index = m_index + 1;
+			}
 		}
 		END{
 			for (j=0; j< k_index; j++)
@@ -515,17 +557,24 @@ file1=$yy
 		done
 		success_rate=`echo "" | awk -v rs=$row_sum -v ar=$all_reports 'END {print (rs/ar)*100}'`
 		reports_missed_zero_echoes=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "XTR" ) &&( $2 == id ) ) { i=i+1; } }END{ print i }' $1`
+		reports_missed_out_of_range_after_echoes=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "ZTR" ) &&( $2 == id ) ) { i=i+1} }END{ print i}' $1`
 		pre_report_hop=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "RTR" ) &&( $3 == id ) ) { i=i+1; } }END{ print i }' $1`
 		reports_missed_hop_count_lim_Q=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "LMQ" ) && ( $7 == id )  ) { i=i+1; } }END{ print i }' $1`
 		reports_missed_hop_count_lim_R=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "LMR" ) && ( $7 == id )  ) { i=i+1; } }END{ print i }' $1`
+		reports_missed_empty_neigh_list=`awk -v id=$tracker_id1 'BEGIN{FS=":"; i=0; }{ if ( ( $1 == "ENR" ) &&( $7 == id ) ) { i=i+1; } }END{ print i }' $1`
 		reports_missed_out_of_range=`expr $pre_report_hop - $row_sum`
-		echo "all reports="$all_reports
-		echo "all successfull reports="$row_sum
+		dupes=`expr $qtr_dupes + $rtr_dupes + $lmq_dupes + $lmr_dupes + $enr_dupes + $ztr_dupes + $tra_dupes`		
+
+		echo "all reports="`expr $all_reports - $qtr_dupes`
+		echo "all successfull reports="`expr $row_sum - $tra_dupes`
 		echo "reports missed [due to zero echoes]="$reports_missed_zero_echoes
-		echo "reports missed [out of comm range]="$reports_missed_out_of_range
-		echo "reports missed [exceeded hop count limit(R)]="$reports_missed_hop_count_lim_R
-		echo "reports missed [exceeded hop count limit(Q)]="$reports_missed_hop_count_lim_Q
-		echo "success rate="$success_rate
+		echo "reports missed [out of comm range]="`expr $reports_missed_out_of_range - $rtr_dupes + $tra_dupes`
+		echo "reports missed [due to comm range after echoes with propability]="`expr $reports_missed_out_of_range_after_echoes - $ztr_dupes`
+		echo "reports missed [exceeded hop count limit(R)]="`expr $reports_missed_hop_count_lim_R - $lmr_dupes`
+		echo "reports missed [exceeded hop count limit(Q)]="`expr $reports_missed_hop_count_lim_Q - $lmq_dupes`
+		echo "reports missed [empty neigh list]="`expr $reports_missed_empty_neigh_list - $enr_dupes`
+		echo "dupes="$dupes
+		echo "success rate="$success_rate"%"
 		avg_hop=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$10 } END { print sum/NR }' tmp/tmp_TR_full.txt`
 		stdev_hop=`awk 'BEGIN { FS=":";} {sum+=$10; array[NR]=$10 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' tmp/tmp_TR_full.txt`
 		echo "average hop number : "$avg_hop
@@ -752,13 +801,17 @@ file1=$yy
 		#rm tmp/tmp_TR_full.txt
 		rm tmp/tmp_TR_row_*
 	fi
+echo "##############################################################"
+	echo
+	echo
+	echo
 done
 ###############################
 
 #MESSAGE STATISTICS
 ###############################
 
-
+echo "##############################################################"
 tr_mode=`grep -c "STATS_VD" $1`
 
 if [ $tr_mode != 0 ]; then
@@ -1498,20 +1551,6 @@ else
 	END{ print max }'`
 	echo "max_inhibition_messages_sent="$max_inhibition_messages_sent
 
-	max_privacy_messages_sent=`sort -t: -k 2n $1 | awk '
-	BEGIN { FS=":"; max=0; } 
-	{ 
-		if ( $1 == "STATS_PD" ) 
-		{ 
-			if ( $9 > max )
-			{
-				max = $9
-			}	
-		} 
-	}
-	END{ print max }'`
-	echo "max_privacy_messages_sent="$max_privacy_messages_sent
-
 	max_privacy_bytes_sent=`sort -t: -k 2n $1 | awk '
 	BEGIN { FS=":"; max=0; } 
 	{ 
@@ -1525,6 +1564,20 @@ else
 	}
 	END{ print max }'`
 	echo "max_privacy_bytes_sent="$max_privacy_bytes_sent
+
+	max_privacy_messages_sent=`sort -t: -k 2n $1 | awk '
+	BEGIN { FS=":"; max=0; } 
+	{ 
+		if ( $1 == "STATS_PD" ) 
+		{ 
+			if ( $9 > max )
+			{
+				max = $9
+			}	
+		} 
+	}
+	END{ print max }'`
+	echo "max_privacy_messages_sent="$max_privacy_messages_sent
 
 	sort -t: -k 2n $1 | awk -v ms=$max_samples 'BEGIN { FS=":"; } { 
 		if ( $1 == "STATS_PD" ) 
@@ -1547,6 +1600,10 @@ else
 	}'
 
 fi
+echo "##############################################################"
+echo
+echo
+echo
 ###############################
 #rm -rf $1
 #rm -rf tmp
