@@ -189,6 +189,26 @@ elif [ $2 == "png" ]; then
 	echo " 'tmp/tmp_avg_stdev_all.txt' using 1:3 with lines lw 4 lc rgb \"blue\" title \"stdev dB\"" >> tmp/CON.p
 fi
 gnuplot tmp/CON.p
+
+grep "LOCAL_MAXIMUM" $1 > tmp/tmp_local_maximums.txt
+local_maximums_count=`grep -c "LOCAL_MAXIMUM" $1`
+grep "LOCAL_MINIMUM" $1 > tmp/tmp_local_minimums.txt
+local_minimums_count=`grep -c "LOCAL_MINIMUM" $1`
+
+avg_local_minimum=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$4 } END { print sum/NR}' tmp/tmp_local_minimums.txt`
+stdev_local_minimum=`awk 'BEGIN { FS=":";} { sum+=$4; array[NR]=$4 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' tmp/tmp_local_minimums.txt`
+
+avg_local_maximum=`awk 'BEGIN { FS=":"; sum=0; } { sum+=$4 } END { print sum/NR}' tmp/tmp_local_maximums.txt`
+stdev_local_maximum=`awk 'BEGIN { FS=":";} { sum+=$4; array[NR]=$4 } END {for(x=1;x<=NR;x++){sumsq+=((array[x]-(sum/NR))^2);}print sqrt(sumsq/NR)}' tmp/tmp_local_maximums.txt`
+
+echo "local minimums="$local_minimums_count
+echo "avg_local_minimum="$avg_local_minimum
+echo "stdev_local_minimum="$stdev_local_minimum
+
+echo "local_maximums="$local_maximums_count
+echo "avg_local_maximum="$avg_local_maximum
+echo "stdev_local_maximum="$stdev_local_maximum
+
 echo "##############################################################"
 echo
 echo
@@ -1223,17 +1243,18 @@ if [ $tr_mode != 0 ]; then
 	DODAG_bytes_slope=`awk 'BEGIN{ FS=":" } { Dbs = $1 } END { print Dbs }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
 	DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dbi = $2 }END { print Dbi }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
 	DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dbr2 = $3 } END { print Dbr2 }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "All DODAG bytes sent slope ="$DODAG_bytes_slope
 	echo "All DODAG bytes sent intercept ="$DODAG_bytes_inter
 	echo "All DODAG bytes sent R2 ="$DODAG_bytes_r2
-
+	echo "--------------------------------------------------------------"
 	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
 	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set ylabel \"bytes\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set title \" linear regression of all DODAG bytes sent\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set label 1 \"Correlation coefficient : "$DODAG_bytes_r2"\" at graph  0.02, graph  0.95" >> tmp/tmp_lin_regr_DODAG.p
 	echo "f(x)="$DODAG_bytes_slope"*x+"$DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set xrange[0:"`expr $max_samples*1.5`"]" >> tmp/tmp_lin_regr_DODAG.p
 	if [ $2 == "eps" ]; then
 		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr.eps\"" >> tmp/tmp_lin_regr_DODAG.p
@@ -1275,17 +1296,18 @@ if [ $tr_mode != 0 ]; then
 	DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
 	DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
 	DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "All DODAG messages sent slope ="$DODAG_messages_slope
 	echo "All DODAG messages sent intercept ="$DODAG_messages_inter
 	echo "All DODAG messages sent R2 ="$DODAG_messages_r2
-
+	echo "--------------------------------------------------------------"
 	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
 	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set ylabel \"messages\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set title \" linear regression of all DODAG messages sent\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set label 1 \"Correlation coefficient : "$DODAG_messages_r2"\" at graph  0.02, graph  0.95" >> tmp/tmp_lin_regr_DODAG.p
 	echo "f(x)="$DODAG_messages_slope"*x+"$DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set xrange[0:"`expr $max_samples*1.5`"]" >> tmp/tmp_lin_regr_DODAG.p
 	if [ $2 == "eps" ]; then
 		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr.eps\"" >> tmp/tmp_lin_regr_DODAG.p
@@ -1327,11 +1349,11 @@ if [ $tr_mode != 0 ]; then
 	I_DODAG_bytes_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt`
 	I_DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt`
 	I_DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "Inhibition DODAG bytes sent slope : "$I_DODAG_bytes_slope
 	echo "Inhibition DODAG bytes sent intercept : "$I_DODAG_bytes_inter
 	echo "Inhibition DODAG bytes sent R2 : "$I_DODAG_bytes_r2
-
+	echo "--------------------------------------------------------------"
 	awk 'BEGIN { FS = ":" }
 	{ x_sum += $2
 		  y_sum += $3
@@ -1359,11 +1381,11 @@ if [ $tr_mode != 0 ]; then
 	S_DODAG_bytes_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
 	S_DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
 	S_DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "Spread DODAG bytes sent slope : "$S_DODAG_bytes_slope
 	echo "Spread DODAG bytes sent intercept : "$S_DODAG_bytes_inter
 	echo "Spread DODAG bytes sent R2 : "$S_DODAG_bytes_r2
-
+	echo "--------------------------------------------------------------"
 	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
 	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set ylabel \"bytes\"" >> tmp/tmp_lin_regr_DODAG.p
@@ -1372,6 +1394,7 @@ if [ $tr_mode != 0 ]; then
 	echo "f1(x)="$S_DODAG_bytes_slope"*x+"$S_DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
 	echo "set label 2 \"Inhibition bytes correlation coefficient : "$I_DODAG_bytes_r2"\" at graph  0.02, graph  0.90" >> tmp/tmp_lin_regr_DODAG.p
 	echo "f2(x)="$I_DODAG_bytes_slope"*x+"$I_DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set xrange[0:"`expr $max_samples*1.5`"]" >> tmp/tmp_lin_regr_DODAG.p
 	if [ $2 == "eps" ]; then
 		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr_v2.eps\"" >> tmp/tmp_lin_regr_DODAG.p
@@ -1417,11 +1440,11 @@ if [ $tr_mode != 0 ]; then
 	I_DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
 	I_DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
 	I_DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "Inhibition DODAG messages sent slope : "$I_DODAG_messages_slope
 	echo "Inhibition DODAG messages sent intercept : "$I_DODAG_messages_inter
 	echo "Inhibition DODAG messages sent R2 : "$I_DODAG_messages_r2
-
+	echo "--------------------------------------------------------------"
 	awk 'BEGIN { FS = ":" }
 	{ x_sum += $2
 		  y_sum += $5
@@ -1449,11 +1472,11 @@ if [ $tr_mode != 0 ]; then
 	S_DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
 	S_DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
 	S_DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "Spread DODAG messages sent slope : "$S_DODAG_messages_slope
 	echo "Spread DODAG messages sent intercept : "$S_DODAG_messages_inter
 	echo "Spread DODAG messages sent R2 : "$S_DODAG_messages_r2
-
+	echo "--------------------------------------------------------------"
 	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
 	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set ylabel \"messages\"" >> tmp/tmp_lin_regr_DODAG.p
@@ -1462,6 +1485,7 @@ if [ $tr_mode != 0 ]; then
 	echo "f1(x)="$S_DODAG_messages_slope"*x+"$S_DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
 	echo "set label 2 \"Inhibition messages correlation coefficient : "$I_DODAG_messages_r2"\" at graph  0.02, graph  0.90" >> tmp/tmp_lin_regr_DODAG.p
 	echo "f2(x)="$I_DODAG_messages_slope"*x+"$I_DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set xrange[0:"`expr $max_samples*1.5`"]" >> tmp/tmp_lin_regr_DODAG.p
 	if [ $2 == "eps" ]; then
 		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr_v2.eps\"" >> tmp/tmp_lin_regr_DODAG.p
@@ -1975,12 +1999,12 @@ count=0
 
 	awk 'BEGIN { FS = ":" }
 	{ x_sum += $2
-		  y_sum += $3+$7
-		  xy_sum += $2*($3+$7)
+		  y_sum += $3+$7+$11
+		  xy_sum += $2*($3+$7+$11)
 		  x2_sum += $2*$2
 		  num += 1
 		  x[NR] = $2
-		  y[NR] = $3+$7
+		  y[NR] = $3+$7+$11
 		}
 	END { mean_x = x_sum / num
 	      mean_y = y_sum / num
@@ -1999,39 +2023,40 @@ count=0
 	DODAG_bytes_slope=`awk 'BEGIN{ FS=":" } { Dbs = $1 } END { print Dbs }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
 	DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dbi = $2 }END { print Dbi }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
 	DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dbr2 = $3 } END { print Dbr2 }' tmp/tmp_lin_regr_DODAG_bytes_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "All DODAG bytes sent slope ="$DODAG_bytes_slope
 	echo "All DODAG bytes sent intercept ="$DODAG_bytes_inter
 	echo "All DODAG bytes sent R2 ="$DODAG_bytes_r2
-
+	echo "--------------------------------------------------------------"
 	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
 	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set ylabel \"bytes\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set title \" linear regression of all DODAG bytes sent\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set label 1 \"Correlation coefficient : "$DODAG_bytes_r2"\" at graph  0.02, graph  0.95" >> tmp/tmp_lin_regr_DODAG.p
 	echo "f(x)="$DODAG_bytes_slope"*x+"$DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set xrange[0:"`expr $max_samples*1.5`"]" >> tmp/tmp_lin_regr_DODAG.p
 	if [ $2 == "eps" ]; then
 		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr.eps\"" >> tmp/tmp_lin_regr_DODAG.p
 		echo "plot f(x) with lines title \"f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
-		echo "tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"3+"\$"7) with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
+		echo "tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"3+"\$"7+"\$"11) with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
 	elif [ $2 == "png" ]; then 
 		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr.png\"" >> tmp/tmp_lin_regr_DODAG.p
 		echo "plot f(x) with lines title \"f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
-		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"3+"\$"7)  with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG bytes sent\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"3+"\$"7+"\$"11)  with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG bytes sent\"" >> tmp/tmp_lin_regr_DODAG.p
 	fi
 	gnuplot tmp/tmp_lin_regr_DODAG.p
 	rm tmp/tmp_lin_regr_DODAG.p
 
 	awk 'BEGIN { FS = ":" }
 	{ x_sum += $2
-		  y_sum += $5+$9
-		  xy_sum += $2*($5+$9)
+		  y_sum += $5+$9+$13
+		  xy_sum += $2*($5+$9+$13)
 		  x2_sum += $2*$2
 		  num += 1
 		  x[NR] = $2
-		  y[NR] = $5+$9
+		  y[NR] = $5+$9+$13
 
 		}
 	END { mean_x = x_sum / num
@@ -2051,27 +2076,28 @@ count=0
 	DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
 	DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
 	DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_DODAG_messages_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "All DODAG messages sent slope ="$DODAG_messages_slope
 	echo "All DODAG messages sent intercept ="$DODAG_messages_inter
 	echo "All DODAG messages sent R2 ="$DODAG_messages_r2
-
+	echo "--------------------------------------------------------------"
 	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
 	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set ylabel \"messages\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set title \" linear regression of all DODAG messages sent\"" >> tmp/tmp_lin_regr_DODAG.p
 	echo "set label 1 \"Correlation coefficient : "$DODAG_messages_r2"\" at graph  0.02, graph  0.95" >> tmp/tmp_lin_regr_DODAG.p
 	echo "f(x)="$DODAG_messages_slope"*x+"$DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set xrange[0:"`expr $max_samples*1.5`"]" >> tmp/tmp_lin_regr_DODAG.p
 	if [ $2 == "eps" ]; then
 		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr.eps\"" >> tmp/tmp_lin_regr_DODAG.p
 		echo "plot f(x) with lines title \"f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
-		echo "tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"5+"\$"9) with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG messages sent\""  >> tmp/tmp_lin_regr_DODAG.p
+		echo "tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"5+"\$"9+"\$"13) with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG messages sent\""  >> tmp/tmp_lin_regr_DODAG.p
 	elif [ $2 == "png" ]; then 
 		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr.png\"" >> tmp/tmp_lin_regr_DODAG.p
 		echo "plot f(x) with lines title \"f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
-		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"5+"\$"9)  with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG messages sent\"" >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:("\$"5+"\$"9+"\$"13)  with points pointsize 2 pointtype 7 lc rgb \"red\" title \"all DODAG messages sent\"" >> tmp/tmp_lin_regr_DODAG.p
 	fi
 	gnuplot tmp/tmp_lin_regr_DODAG.p
 	rm tmp/tmp_lin_regr_DODAG.p
@@ -2104,9 +2130,11 @@ count=0
 	I_DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt`
 	I_DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_I_DODAG_bytes_sent.txt`
 
+	echo "--------------------------------------------------------------"
 	echo "Inhibition DODAG bytes sent slope : "$I_DODAG_bytes_slope
 	echo "Inhibition DODAG bytes sent intercept : "$I_DODAG_bytes_inter
 	echo "Inhibition DODAG bytes sent R2 : "$I_DODAG_bytes_r2
+	echo "--------------------------------------------------------------"
 
 	awk 'BEGIN { FS = ":" }
 	{ x_sum += $2
@@ -2135,10 +2163,44 @@ count=0
 	S_DODAG_bytes_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
 	S_DODAG_bytes_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
 	S_DODAG_bytes_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_S_DODAG_bytes_sent.txt`
-
+	echo "--------------------------------------------------------------"
 	echo "Spread DODAG bytes sent slope : "$S_DODAG_bytes_slope
 	echo "Spread DODAG bytes sent intercept : "$S_DODAG_bytes_inter
 	echo "Spread DODAG bytes sent R2 : "$S_DODAG_bytes_r2
+	echo "--------------------------------------------------------------"
+
+	awk 'BEGIN { FS = ":" }
+	{ x_sum += $2
+		  y_sum += $11
+		  xy_sum += $2*$11
+		  x2_sum += $2*$2
+		  num += 1
+		  x[NR] = $2
+		  y[NR] = $11
+
+		}
+	END { mean_x = x_sum / num
+	      mean_y = y_sum / num
+	      mean_xy = xy_sum / num
+	      mean_x2 = x2_sum / num
+	      slope = (mean_xy - (mean_x*mean_y)) / (mean_x2 - (mean_x*mean_x))
+	      inter = mean_y - slope * mean_x
+	      for (i = num; i > 0; i--) {
+		  ss_total += (y[i] - mean_y)^2
+		  ss_residual += (y[i] - (slope * x[i] + inter))^2
+	      }
+	      r2 = 1 - (ss_residual / ss_total)
+	      printf("%g:%g:%g", slope, inter, r2)
+	    }' tmp/tmp_AGRR_DODAG_SENT.txt > tmp/tmp_lin_regr_decryption_requests_bytes_sent.txt
+
+	decryption_requests_bytes_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_decryption_requests_bytes_sent.txt`
+	decryption_requests_bytes_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_decryption_requests_bytes_sent.txt`
+	decryption_requests_bytes_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_decryption_requests_bytes_sent.txt`
+	echo "--------------------------------------------------------------"
+	echo "decryption requests bytes sent slope="$decryption_requests_bytes_slope
+	echo "decryption requests bytes sent intercept="$decryption_requests_bytes_inter
+	echo "decryption requests bytes sent R2="$decryption_requests_bytes_r2
+	echo "--------------------------------------------------------------"
 
 	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
 	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
@@ -2148,20 +2210,27 @@ count=0
 	echo "f1(x)="$S_DODAG_bytes_slope"*x+"$S_DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
 	echo "set label 2 \"Inhibition bytes correlation coefficient : "$I_DODAG_bytes_r2"\" at graph  0.02, graph  0.90" >> tmp/tmp_lin_regr_DODAG.p
 	echo "f2(x)="$I_DODAG_bytes_slope"*x+"$I_DODAG_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set label 3 \"Decr. req. bytes correlation coefficient : "$decryption_requests_bytes_r2"\" at graph  0.02, graph  0.85" >> tmp/tmp_lin_regr_DODAG.p
+	echo "f3(x)="$decryption_requests_bytes_slope"*x+"$decryption_requests_bytes_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set xrange[0:"`expr $max_samples*1.5`"]" >> tmp/tmp_lin_regr_DODAG.p
 	if [ $2 == "eps" ]; then
 		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr_v2.eps\"" >> tmp/tmp_lin_regr_DODAG.p
 		echo "plot f1(x) with lines title \"Spread bytes f(x)\" lc rgb \"blue\", \\" >> tmp/tmp_lin_regr_DODAG.p
 		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:3 with points pointsize 2 pointtype 7 lc rgb \"blue\" title \"Spread bytes sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
 		echo "f2(x) with lines title \"Inhibition bytes f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p	
-		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:7 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:7 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition bytes sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
+		echo "f3(x) with lines title \"Decryption request bytes f(x)\" lc rgb \"green\", \\" >> tmp/tmp_lin_regr_DODAG.p	
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:11 with points pointsize 2 pointtype 7 lc rgb \"green\" title \"Decryption request bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
 	elif [ $2 == "png" ]; then 
 		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_bytes_sent_lin_regr_v2.png\"" >> tmp/tmp_lin_regr_DODAG.p
 		echo "plot f1(x) with lines title \"Spread bytes f(x)\" lc rgb \"blue\", \\" >> tmp/tmp_lin_regr_DODAG.p
 		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:3 with points pointsize 2 pointtype 7 lc rgb \"blue\" title \"Spread bytes sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
 		echo "f2(x) with lines title \"Inhibition bytes f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p	
-		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:7 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:7 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition bytes sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
+		echo "f3(x) with lines title \"Decryption request bytes f(x)\" lc rgb \"green\", \\" >> tmp/tmp_lin_regr_DODAG.p	
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:11 with points pointsize 2 pointtype 7 lc rgb \"green\" title \"Decryption request bytes sent\""  >> tmp/tmp_lin_regr_DODAG.p
 	fi
 	gnuplot tmp/tmp_lin_regr_DODAG.p
 	rm tmp/tmp_lin_regr_DODAG.p
@@ -2193,11 +2262,11 @@ count=0
 	I_DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
 	I_DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
 	I_DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_I_DODAG_messages_sent.txt`
-
-	echo "Inhibition DODAG messages sent slope : "$I_DODAG_messages_slope
-	echo "Inhibition DODAG messages sent intercept : "$I_DODAG_messages_inter
-	echo "Inhibition DODAG messages sent R2 : "$I_DODAG_messages_r2
-
+	echo "--------------------------------------------------------------"
+	echo "Inhibition DODAG messages sent slope="$I_DODAG_messages_slope
+	echo "Inhibition DODAG messages sent intercept="$I_DODAG_messages_inter
+	echo "Inhibition DODAG messages sent R2="$I_DODAG_messages_r2
+	echo "--------------------------------------------------------------"
 	awk 'BEGIN { FS = ":" }
 	{ x_sum += $2
 		  y_sum += $5
@@ -2225,10 +2294,46 @@ count=0
 	S_DODAG_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
 	S_DODAG_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
 	S_DODAG_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_S_DODAG_messages_sent.txt`
+	echo "--------------------------------------------------------------"
+	echo "Spread DODAG messages sent slope="$S_DODAG_messages_slope
+	echo "Spread DODAG messages sent intercept="$S_DODAG_messages_inter
+	echo "Spread DODAG messages sent R2="$S_DODAG_messages_r2
+	echo "--------------------------------------------------------------"
 
-	echo "Spread DODAG messages sent slope : "$S_DODAG_messages_slope
-	echo "Spread DODAG messages sent intercept : "$S_DODAG_messages_inter
-	echo "Spread DODAG messages sent R2 : "$S_DODAG_messages_r2
+	awk 'BEGIN { FS = ":" }
+	{ x_sum += $2
+		  y_sum += $13
+		  xy_sum += $2*$13
+		  x2_sum += $2*$2
+		  num += 1
+		  x[NR] = $2
+		  y[NR] = $13
+
+		}
+	END { mean_x = x_sum / num
+	      mean_y = y_sum / num
+	      mean_xy = xy_sum / num
+	      mean_x2 = x2_sum / num
+	      slope = (mean_xy - (mean_x*mean_y)) / (mean_x2 - (mean_x*mean_x))
+	      inter = mean_y - slope * mean_x
+	      for (i = num; i > 0; i--) {
+		  ss_total += (y[i] - mean_y)^2
+		  ss_residual += (y[i] - (slope * x[i] + inter))^2
+	      }
+	      r2 = 1 - (ss_residual / ss_total)
+	      printf("%g:%g:%g", slope, inter, r2)
+	    }' tmp/tmp_AGRR_DODAG_SENT.txt > tmp/tmp_lin_regr_decryption_requests_messages_sent.txt
+
+	decryption_requests_messages_slope=`awk 'BEGIN{ FS=":" } { Dms = $1 } END { print Dms }' tmp/tmp_lin_regr_decryption_requests_messages_sent.txt`
+	decryption_requests_messages_inter=`awk 'BEGIN{ FS=":" } { Dmi = $2 } END { print Dmi }' tmp/tmp_lin_regr_decryption_requests_messages_sent.txt`
+	decryption_requests_messages_r2=`awk 'BEGIN{ FS=":" } { Dmr2 = $3 } END { print Dmr2 }' tmp/tmp_lin_regr_decryption_requests_messages_sent.txt`
+
+	echo "--------------------------------------------------------------"
+	echo "decryption request messages sent slope="$decryption_requests_messages_slope
+	echo "decryption request messages sent intercept="$decryption_requests_messages_inter
+	echo "decryption request messages sent R2="$decryption_requests_messages_r2
+	echo "--------------------------------------------------------------"
+
 
 	echo "set datafile separator \":\"" > tmp/tmp_lin_regr_DODAG.p
 	echo "set xlabel \"time (sample steps)\"" >> tmp/tmp_lin_regr_DODAG.p
@@ -2238,20 +2343,29 @@ count=0
 	echo "f1(x)="$S_DODAG_messages_slope"*x+"$S_DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
 	echo "set label 2 \"Inhibition messages correlation coefficient : "$I_DODAG_messages_r2"\" at graph  0.02, graph  0.90" >> tmp/tmp_lin_regr_DODAG.p
 	echo "f2(x)="$I_DODAG_messages_slope"*x+"$I_DODAG_messages_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set label 3 \"Decr. req. messages correlation coefficient : "$decryption_requests_messages_r2"\" at graph  0.02, graph  0.85" >> tmp/tmp_lin_regr_DODAG.p
+	echo "f3(x)="$decryption_requests_messages_slope"*x+"$decryption_requests_messages_inter >> tmp/tmp_lin_regr_DODAG.p
+	echo "set xrange[0:"`expr $max_samples*1.5`"]" >> tmp/tmp_lin_regr_DODAG.p
 	if [ $2 == "eps" ]; then
 		echo "set terminal postscript eps enhanced color font 'Helvetica,12'" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr_v2.eps\"" >> tmp/tmp_lin_regr_DODAG.p
 		echo "plot f1(x) with lines title \"Spread messages f(x)\" lc rgb \"blue\", \\" >> tmp/tmp_lin_regr_DODAG.p
 		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:5 with points pointsize 2 pointtype 7 lc rgb \"blue\" title \"Spread messages sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
 		echo "f2(x) with lines title \"Inhibition messages f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
-		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:9 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition messages sent\""  >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:9 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition messages sent\, \\"  >> tmp/tmp_lin_regr_DODAG.p
+		echo "f3(x) with lines title \"Decryption request messages f(x)\" lc rgb \"green\", \\" >> tmp/tmp_lin_regr_DODAG.p	
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:13 with points pointsize 2 pointtype 7 lc rgb \"green\" title \"Decryption request messages sent\""  >> tmp/tmp_lin_regr_DODAG.p
+
 	elif [ $2 == "png" ]; then 
 		echo "set terminal png font '/usr/share/fonts/truetype/ttf-liberation/LiberationSans-Regular.ttf' 16 size 1280,1024" >> tmp/tmp_lin_regr_DODAG.p
 		echo "set output "\"""$nf"/STATS_VD_all_DODAG_messages_sent_lin_regr_v2.png\"" >> tmp/tmp_lin_regr_DODAG.p
 		echo "plot f1(x) with lines title \"Spread messages f(x)\" lc rgb \"blue\", \\" >> tmp/tmp_lin_regr_DODAG.p
 		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:5 with points pointsize 2 pointtype 7 lc rgb \"blue\" title \"Spread messages sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
 		echo "f2(x) with lines title \"Inhibition messages f(x)\" lc rgb \"red\", \\" >> tmp/tmp_lin_regr_DODAG.p
-		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:9 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition messages sent\""  >> tmp/tmp_lin_regr_DODAG.p
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:9 with points pointsize 2 pointtype 7 lc rgb \"red\" title \"Inhibition messages sent\", \\"  >> tmp/tmp_lin_regr_DODAG.p
+		echo "f3(x) with lines title \"Decryption request messages f(x)\" lc rgb \"green\", \\" >> tmp/tmp_lin_regr_DODAG.p	
+		echo "'tmp/tmp_AGRR_DODAG_SENT.txt' using 2:13 with points pointsize 2 pointtype 7 lc rgb \"green\" title \"Decryption request messages sent\""  >> tmp/tmp_lin_regr_DODAG.p		
+
 	fi
 	gnuplot tmp/tmp_lin_regr_DODAG.p
 	rm tmp/tmp_lin_regr_DODAG.p
