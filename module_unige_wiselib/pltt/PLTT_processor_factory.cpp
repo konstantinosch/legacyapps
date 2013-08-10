@@ -1,3 +1,5 @@
+#ifndef __SHAWN_LEGACYAPPS_WISELIB_PLTT_PROCESSOR_FACTORY_H
+#else
 #include "PLTT_processor_factory.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 #include "PLTT_processor.h"
@@ -39,4 +41,5 @@ namespace wiselib
 
 }
 
+#endif
 #endif

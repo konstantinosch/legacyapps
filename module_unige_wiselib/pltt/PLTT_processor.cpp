@@ -1,3 +1,5 @@
+#ifndef __SHAWN_LEGACYAPPS_MODULE_UNIGE_WISELIB_PLTT_PROCESSOR_H
+#else
 #include "PLTT_processor.h"
 #ifdef ENABLE_MODULE_UNIGE_WISELIB
 #include "sys/simulation/simulation_controller.h"
@@ -445,4 +447,5 @@ namespace wiselib
 		}
 	}
 }
+#endif
 #endif
